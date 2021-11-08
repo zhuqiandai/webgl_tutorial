@@ -1,0 +1,20 @@
+{
+  "name": "webgl_tutorial",
+  "version": "1.0.0",
+  "description": "webgl_tutorial",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhuqiandai/webgl_tutorial.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zhuqiandai/webgl_tutorial/issues"
+  },
+  "homepage": "https://github.com/zhuqiandai/webgl_tutorial#readme"
+}
