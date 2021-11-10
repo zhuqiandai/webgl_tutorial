@@ -1,122 +1,99 @@
-import { mat4 } from 'gl-matrix'
+/**
+ *  平移 旋转 缩放
+ */
 
 import { initShaderProgram } from '../webgl_utils'
 import './style.css'
 
 const $webglContainer = document.getElementById('webgl-container')
-
 const gl = $webglContainer.getContext('webgl')
 
+const $translateX = document.getElementById('translateX')
+const $translateXspan = document.getElementById('translateX-span')
+const $translateY = document.getElementById('translateY')
+const $translateYspan = document.getElementById('translateY-span')
+const $ratoteX = document.getElementById('ratoteX')
+const $ratoteXspan = document.getElementById('ratoteX-span')
+const $rotateY = document.getElementById('rotateY')
+const $rotateYspan = document.getElementById('rotateY-span')
+
+{
+  $translateX.value = 0
+  $translateX.max = $webglContainer.clientWidth
+  $translateX.min = -1 * $translateX.max
+
+  $translateY.value = 0
+  $translateY.max = $webglContainer.clientHeight
+  $translateY.min = -1 * $translateY.max
+}
+
+function onTranslate(e, param) {
+  console.log(e.target.value, param)
+}
+
+$translateX.oninput = (e) => onTranslate(e, 'x')
+
 const vsSource = `
-        attribute vec4 aVertexPosition;
-        attribute vec4 aVertexColor;
+  attribute vec4 aVertexPosition;
 
-        uniform mat4 uModelViewMatrix;
-        uniform mat4 uProjectionMatrix;
+  uniform mat4 uModelViewMatrix;
+  // uniform mat4 uTranslateControl;
 
-        varying lowp vec4 vColor;
-
-        void main() {
-          gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-          vColor = aVertexColor;
-        }
-      `
+  void main() {
+    gl_Position = uModelViewMatrix * aVertexPosition;
+  }
+`
 
 const fsSource = `
-        precision lowp float;
+  precision lowp float;
 
-        varying lowp vec4 vColor;
+  void main() {
+    // 这里可以直接赋值，也可以在 js 中获取 location 赋值
+    // 如果需要根据顶点颜色呈现不同状态，就需要使用 varying 变量
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1);
+  }
+`
 
-        void main() {
-          gl_FragColor = vColor;
-        }
-      `
-
-const shaderProgram = initShaderProgram(gl, vsSource, fsSource)
+const program = initShaderProgram(gl, vsSource, fsSource)
 
 const programInfo = {
-  program: shaderProgram,
+  program,
   attribLocations: {
-    vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-    vertexColor: gl.getAttribLocation(shaderProgram, 'aVertexColor'),
+    aVertexPosition: gl.getAttribLocation(program, 'aVertexPosition'),
   },
   uniformLocations: {
-    projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-    modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+    uModelViewMatrix: gl.getUniformLocation(program, 'uModelViewMatrix'),
+    // uTranslateControl: gl.getUniformLocation(program, 'uTranslateControl'),
   },
 }
 
+// 要先 useProgram 在设置 uniform 的值
+gl.useProgram(programInfo.program)
+
 function initBuffers(gl) {
-  const positionBuffer = gl.createBuffer()
+  const buffers = gl.createBuffer()
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-
-  // prettier-ignore
-  const vertices = [
-     1.0, 1.0, 0.0, 
-    -1.0, 1.0, 0.0, 
-    1.0, -1.0, 0.0, 
-    -1.0, -1.0, 0.0
-  ]
-
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW)
-
-  const colorBuffer = gl.createBuffer()
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer)
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffers)
 
   // prettier-ignore
-  const colors = [
-    1.0,  0.0,  1.0,  1.0,    // 白
-    1.0,  1.0,  0.0,  1.0,    // 红
-    0.0,  1.0,  1.0,  1.0,    // 绿
-    0.0,  1.0,  1.0,  1.0,    // 蓝
-  ];
+  const postionArray = new Float32Array([
+    -0.1, 0.1, 0.0,
+    0.1, 0.1, 0.0,
+    0.1, -0.1, 0.0,
+    -0.1, -0.1, 0.0,
+  ])
 
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW)
+  gl.bufferData(gl.ARRAY_BUFFER, postionArray, gl.STATIC_DRAW)
 
-  return {
-    position: positionBuffer,
-    color: colorBuffer,
-  }
+  return buffers
 }
 
-const buffers = initBuffers(gl)
+function draw(gl, translateVal) {
+  gl.clearColor(0.0, 0.0, 0.0, 1.0)
 
-let squareRotaion = 0
+  gl.clear(gl.COLOR_BUFFER_BIT)
 
-function drawScene(gl, programInfo, buffers, deltaTime) {
-
-  gl.clearColor(0.0, 0.0, 0.0, 1)
-  gl.clearDepth(1.0)
-
-  gl.enable(gl.DEPTH_TEST)
-  gl.depthFunc(gl.LEQUAL)
-
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
-  const fieldOfView = (45 * Math.PI) / 180 // in radians
-  const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight
-  const zNear = 0.1
-  const zFar = 100.0
-  const projectionMatrix = mat4.create()
-
-  mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar)
-
-  const modelViewMatrix = mat4.create()
-
-  mat4.translate(
-    modelViewMatrix, // destination matrix
-    modelViewMatrix, // matrix to translate
-    [-0.0, 0.0, -6.0]
-  )
-
-  mat4.rotate(
-    modelViewMatrix,
-    modelViewMatrix,
-    squareRotaion,
-    [0, 0, 1]
-  )
+  const postionBuffers = initBuffers(gl)
 
   {
     const numComponents = 3 // pull out 3 values per iteration
@@ -125,62 +102,44 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     const stride = 0 // how many bytes to get from one set of values to the next
     // 0 = use type and numComponents above
     const offset = 0 // how many bytes inside the buffer to start from
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position)
+    gl.bindBuffer(gl.ARRAY_BUFFER, postionBuffers)
     gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexPosition,
+      programInfo.attribLocations.aVertexPosition,
       numComponents,
       type,
       normalize,
       stride,
       offset
     )
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition)
+    gl.enableVertexAttribArray(programInfo.attribLocations.aVertexPosition)
   }
 
   {
-    const numComponents = 3 // pull out 3 values per iteration
-    const type = gl.FLOAT // the data in the buffer is 32bit floats
-    const normalize = false // don't normalize
-    const stride = 0 // how many bytes to get from one set of values to the next
-    // 0 = use type and numComponents above
-    const offset = 0 // how many bytes inside the buffer to start from
+    // prettier-ignore
+    const modelViewMatrix = new Float32Array([
+      1.0, 0.0, 0.0, 0.2,
+      0.0, 1.0, 0.0, 0.3,
+      0.0, 0.0, 1.0, 1.0,
+      0.0, 0.0, 0.0, 1.0,
+    ])
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color)
-    gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexColor,
-      numComponents,
-      type,
-      normalize,
-      stride,
-      offset
-    )
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor)
+    // // prettier-ignore
+    // const translateControlV = new Float32Array([
+    //   1.0, 0.0, 0.0, 0.0,
+    //   0.0, 1.0, 0.0, 0.0,
+    //   0.0, 0.0, 1.0, 0.0,
+    //   0.0, 0.0, 0.0, 1.0,
+    // ])
+
+    gl.uniformMatrix4fv(programInfo.uniformLocations.uModelViewMatrix, false, modelViewMatrix)
+    // gl.uniformMatrix4fv(programInfo.uniformLocations.uTranslateControl,false, translateControlV)
   }
-
-  gl.useProgram(programInfo.program)
-
-  gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix)
-  gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix)
 
   {
     const offset = 0
     const vertexCount = 4
-    gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount)
+    gl.drawArrays(gl.TRIANGLE_FAN, offset, vertexCount)
   }
-
-  squareRotaion += deltaTime
 }
 
-let then = 0
-
-function render(now) {
-  now *= 0.001 // convert to seconds
-  const deltaTime = now - then
-  then = now
- 
-  drawScene(gl, programInfo, buffers, deltaTime)
-
-  requestAnimationFrame(render)
-}
-
-requestAnimationFrame(render)
+draw(gl, 0.1)
