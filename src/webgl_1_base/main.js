@@ -1,6 +1,6 @@
 import { mat4 } from 'gl-matrix'
 
-import { initShaderProgram } from '../webgl_utils'
+import { initShaderProgram } from '../../utils/webgl_utils'
 import './style.css'
 
 const $webglContainer = document.getElementById('webgl-container')

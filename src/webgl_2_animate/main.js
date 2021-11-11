@@ -2,45 +2,21 @@
  *  平移 旋转 缩放
  */
 
-import { initShaderProgram } from '../webgl_utils'
+import { glMatrix } from 'gl-matrix'
+import { initShaderProgram } from '../../utils/webgl_utils'
 import './style.css'
 
 const $webglContainer = document.getElementById('webgl-container')
 const gl = $webglContainer.getContext('webgl')
 
-const $translateX = document.getElementById('translateX')
-const $translateXspan = document.getElementById('translateX-span')
-const $translateY = document.getElementById('translateY')
-const $translateYspan = document.getElementById('translateY-span')
-const $ratoteX = document.getElementById('ratoteX')
-const $ratoteXspan = document.getElementById('ratoteX-span')
-const $rotateY = document.getElementById('rotateY')
-const $rotateYspan = document.getElementById('rotateY-span')
-
-{
-  $translateX.value = 0
-  $translateX.max = $webglContainer.clientWidth
-  $translateX.min = -1 * $translateX.max
-
-  $translateY.value = 0
-  $translateY.max = $webglContainer.clientHeight
-  $translateY.min = -1 * $translateY.max
-}
-
-function onTranslate(e, param) {
-  console.log(e.target.value, param)
-}
-
-$translateX.oninput = (e) => onTranslate(e, 'x')
-
 const vsSource = `
   attribute vec4 aVertexPosition;
 
   uniform mat4 uModelViewMatrix;
-  // uniform mat4 uTranslateControl;
+  uniform mat4 uTranslateControl;
 
   void main() {
-    gl_Position = uModelViewMatrix * aVertexPosition;
+    gl_Position = uModelViewMatrix * uTranslateControl * aVertexPosition;
   }
 `
 
@@ -63,7 +39,7 @@ const programInfo = {
   },
   uniformLocations: {
     uModelViewMatrix: gl.getUniformLocation(program, 'uModelViewMatrix'),
-    // uTranslateControl: gl.getUniformLocation(program, 'uTranslateControl'),
+    uTranslateControl: gl.getUniformLocation(program, 'uTranslateControl'),
   },
 }
 
@@ -88,9 +64,11 @@ function initBuffers(gl) {
   return buffers
 }
 
-function draw(gl, translateVal) {
-  gl.clearColor(0.0, 0.0, 0.0, 1.0)
+let radian = glMatrix.toRadian(30)
+let translateX = 0
 
+function draw(gl, deltaTime) {
+  gl.clearColor(0.0, 0.0, 0.0, 1.0)
   gl.clear(gl.COLOR_BUFFER_BIT)
 
   const postionBuffers = initBuffers(gl)
@@ -115,24 +93,28 @@ function draw(gl, translateVal) {
   }
 
   {
+    radian += deltaTime
+
+    translateX += deltaTime / 100
+
     // prettier-ignore
     const modelViewMatrix = new Float32Array([
-      1.0, 0.0, 0.0, 0.2,
-      0.0, 1.0, 0.0, 0.3,
-      0.0, 0.0, 1.0, 1.0,
+      Math.cos(radian), -Math.sin(radian), 0.0, 0.0,
+      Math.sin(radian),  Math.cos(radian), 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0,
       0.0, 0.0, 0.0, 1.0,
     ])
 
-    // // prettier-ignore
-    // const translateControlV = new Float32Array([
-    //   1.0, 0.0, 0.0, 0.0,
-    //   0.0, 1.0, 0.0, 0.0,
-    //   0.0, 0.0, 1.0, 0.0,
-    //   0.0, 0.0, 0.0, 1.0,
-    // ])
+    // prettier-ignore
+    const translateControlV = new Float32Array([
+      1.0 , 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0,
+      translateX, translateX, 0.0, 1.0,
+    ])
 
     gl.uniformMatrix4fv(programInfo.uniformLocations.uModelViewMatrix, false, modelViewMatrix)
-    // gl.uniformMatrix4fv(programInfo.uniformLocations.uTranslateControl,false, translateControlV)
+    gl.uniformMatrix4fv(programInfo.uniformLocations.uTranslateControl, false, translateControlV)
   }
 
   {
@@ -142,4 +124,17 @@ function draw(gl, translateVal) {
   }
 }
 
-draw(gl, 0.1)
+let then = 0
+function render(now) {
+  now *= 0.001 // 转换成秒
+
+  const deltaTime = now - then
+
+  then = now
+
+  draw(gl, deltaTime)
+
+  requestAnimationFrame(render)
+}
+
+requestAnimationFrame(render)
