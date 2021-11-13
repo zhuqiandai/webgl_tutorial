@@ -186,14 +186,20 @@ function draw(gl) {
   {
     const modelMatrix = mat4.create()
     // 缩放
-    mat4.scale(modelMatrix, modelMatrix, [0.1, 0.1, 0.1, 1])
-    mat4.translate(modelMatrix, modelMatrix, [1, 1, 0, 1])
+    mat4.scale(modelMatrix, modelMatrix, [10, 10, 10, 1])
+    mat4.translate(modelMatrix, modelMatrix, [0, 0, -10, 1])
 
     const viewMatrix = mat4.create()
     // 视点 目标点 上方向
-    mat4.lookAt(viewMatrix, [0.2, 0.2, 0], [0, 0, 1], [0, 1, 0])
+    mat4.lookAt(viewMatrix, [0, 0.1, 2], [0, -0.5, 1], [0, 1, 0])
 
     const perspectiveMatirx = mat4.create()
+
+    const fieldOfViewInRadians = 30
+    const aspect = 1
+    const near = 0
+    const far = 100
+    mat4.perspective(perspectiveMatirx, fieldOfViewInRadians, aspect, near, far)
 
     gl.uniformMatrix4fv(programInfo.uniformLocations.uModelMatrix, false, modelMatrix)
     gl.uniformMatrix4fv(programInfo.uniformLocations.uViewMatrix, false, viewMatrix)
