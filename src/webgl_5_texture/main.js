@@ -6,32 +6,30 @@ const webglContainer = document.getElementById('webgl-container')
 const gl = webglContainer.getContext('webgl')
 
 const vsSource = `
+attribute vec4 aVertexPosition;
+attribute vec2 aTextureCoord;
 
-  attribute vec4 aVertexPosition;
+uniform mat4 uModelMatrix;
+uniform mat4 uViewMatrix;
 
-  attribute vec2 aTextureCoord;
+varying highp vec2 vTextureCoord;
 
-  uniform mat4 uModelMatrix;
-  uniform mat4 uViewMatrix;
-
-  varying vec2 vTextureCoord;
-
-  void main(void) {
-    gl_Position = uViewMatrix * uModelMatrix * aVertexPosition;
-    vTextureCoord = aTextureCoord;
-  }
+void main(void) {
+  gl_Position = uViewMatrix * uModelMatrix * aVertexPosition;
+  vTextureCoord = aTextureCoord;
+}
 `
 
+// Fragment shader program
+
 const fsSource = `
-  precision mediump float;
+varying highp vec2 vTextureCoord;
 
-  uniform sampler2D uSampler;
+uniform sampler2D uSampler;
 
-  varying vec2 vTextureCoord;
-
-  void main(void) {
-    gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-  } 
+void main(void) {
+  gl_FragColor = texture2D(uSampler, vTextureCoord);
+}
 `
 
 const program = initShaderProgram(gl, vsSource, fsSource)
@@ -45,57 +43,53 @@ const programInfo = {
   uniformLocations: {
     uModelMatrix: gl.getUniformLocation(program, 'uModelMatrix'),
     uViewMatrix: gl.getUniformLocation(program, 'uViewMatrix'),
-
     uSampler: gl.getUniformLocation(program, 'uSampler'),
   },
 }
 
-gl.useProgram(program)
+const { positionBuffer, textureCoordBuffer, indexBuffer } = initBuffers(gl)
+
+const texture = loadTexture(gl, 'cubetexture.png')
 
 function initBuffers(gl) {
+  // Create a buffer for the cube's vertex positions.
+
   const positionBuffer = gl.createBuffer()
+
+  // Select the positionBuffer as the one to apply buffer
+  // operations to from here out.
 
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
 
-  // prettier-ignore
+  // Now create an array of positions for the cube.
+
   const positions = [
-        // Front face
-    -1.0, -1.0,  1.0, 
-    1.0, -1.0,  1.0, 
-    1.0,  1.0,  1.0, 
-  -1.0,  1.0,  1.0,   
+    // Front face
+    -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
 
-  // Back face
-  -1.0, -1.0, -1.0,
-  -1.0,  1.0, -1.0,  
-    1.0,  1.0, -1.0, 
-    1.0, -1.0, -1.0,  
+    // Back face
+    -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0,
 
-  // Top face
-  -1.0,  1.0, -1.0, 
-  -1.0,  1.0,  1.0, 
-    1.0,  1.0,  1.0,
-    1.0,  1.0, -1.0,
+    // Top face
+    -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0,
 
-  // Bottom face
-  -1.0, -1.0, -1.0,   
-    1.0, -1.0, -1.0, 
-    1.0, -1.0,  1.0,
-  -1.0, -1.0,  1.0, 
+    // Bottom face
+    -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0,
 
-  // Right face
-    1.0, -1.0, -1.0,   
-    1.0,  1.0, -1.0, 
-    1.0,  1.0,  1.0,
-    1.0, -1.0,  1.0, 
+    // Right face
+    1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0,
 
-  // Left face
-  -1.0, -1.0, -1.0, 
-  -1.0, -1.0,  1.0,
-  -1.0,  1.0,  1.0,
-  -1.0,  1.0, -1.0,
+    // Left face
+    -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
   ]
+
+  // Now pass the list of positions into WebGL to build the
+  // shape. We do this by creating a Float32Array from the
+  // JavaScript array, then use it to fill the current buffer.
+
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW)
+
+  // Now set up the texture coordinates for the faces.
 
   const textureCoordBuffer = gl.createBuffer()
   gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer)
@@ -117,19 +111,58 @@ function initBuffers(gl) {
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW)
 
+  // Build the element array buffer; this specifies the indices
+  // into the vertex arrays for each face's vertices.
+
   const indexBuffer = gl.createBuffer()
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
 
-  // prettier-ignore
-  const index = [
-    0,  1,  2,      0,  2,  3,    // front
-    4,  5,  6,      4,  6,  7,    // back
-    8,  9,  10,     8,  10, 11,   // top
-    12, 13, 14,     12, 14, 15,   // bottom
-    16, 17, 18,     16, 18, 19,   // right
-    20, 21, 22,     20, 22, 23,   // left
-  ];
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(index), gl.STATIC_DRAW)
+  // This array defines each face as two triangles, using the
+  // indices into the vertex array to specify each triangle's
+  // position.
+
+  const indices = [
+    0,
+    1,
+    2,
+    0,
+    2,
+    3, // front
+    4,
+    5,
+    6,
+    4,
+    6,
+    7, // back
+    8,
+    9,
+    10,
+    8,
+    10,
+    11, // top
+    12,
+    13,
+    14,
+    12,
+    14,
+    15, // bottom
+    16,
+    17,
+    18,
+    16,
+    18,
+    19, // right
+    20,
+    21,
+    22,
+    20,
+    22,
+    23, // left
+  ]
+
+  // Now send the element array to GL
+
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
 
   return {
     positionBuffer,
@@ -138,15 +171,29 @@ function initBuffers(gl) {
   }
 }
 
+gl.useProgram(program)
 let radians = 0
 function draw(gl, deltaTime) {
-  gl.clearColor(1.0, 1.0, 1.0, 1)
+  gl.clearColor(1.0, 1.0, 1.0, 1.0) // Clear to black, fully opaque
+  gl.clearDepth(1.0) // Clear everything
+  gl.enable(gl.DEPTH_TEST) // Enable depth testing
+  gl.depthFunc(gl.LEQUAL) // Near things obscure far things
+
+  // Clear the canvas before we start drawing on it.
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-  const { positionBuffer, textureCoordBuffer, indexBuffer } = initBuffers(gl)
+  const modelMatrix = mat4.create()
+  mat4.scale(modelMatrix, modelMatrix, [0.1, 0.1, 0.1, 1])
+  mat4.rotateX(modelMatrix, modelMatrix, radians)
+  mat4.rotateY(modelMatrix, modelMatrix, radians)
 
-  const { texture } = initTexture(gl)
+  const modelLocation = programInfo.uniformLocations.uModelMatrix
+
+  const viewMatrix = mat4.create()
+  // mat4.lookAt(viewMatrix, [0, 0, 0], [0, 0, 1], [0, 1, 0])
+
+  const viewLocation = programInfo.uniformLocations.uViewMatrix
 
   {
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
@@ -160,22 +207,6 @@ function draw(gl, deltaTime) {
     gl.vertexAttribPointer(index, size, type, normalized, stride, offset)
 
     gl.enableVertexAttribArray(index)
-  }
-
-  {
-    const modelMatrix = mat4.create()
-    mat4.scale(modelMatrix, modelMatrix, [0.1, 0.1, 0.1, 1])
-    mat4.rotateX(modelMatrix, modelMatrix, radians)
-    mat4.rotateY(modelMatrix, modelMatrix, radians)
-
-    const modelLocation = programInfo.uniformLocations.uModelMatrix
-    gl.uniformMatrix4fv(modelLocation, false, modelMatrix)
-
-    const viewMatrix = mat4.create()
-    // mat4.lookAt(viewMatrix, [0, 0, 0], [0, 0, 1], [0, 1, 0])
-
-    const viewLocation = programInfo.uniformLocations.uViewMatrix
-    gl.uniformMatrix4fv(viewLocation, false, viewMatrix)
   }
 
   {
@@ -196,17 +227,25 @@ function draw(gl, deltaTime) {
     gl.enableVertexAttribArray(programInfo.attribLocations.aTextureCoord)
   }
 
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+
+  gl.uniformMatrix4fv(modelLocation, false, modelMatrix)
+  gl.uniformMatrix4fv(viewLocation, false, viewMatrix)
+
+  // Tell WebGL we want to affect texture unit 0
+  gl.activeTexture(gl.TEXTURE0)
+
+  // Bind the texture to texture unit 0
+  gl.bindTexture(gl.TEXTURE_2D, texture)
+
+  // Tell the shader we bound the texture to texture unit 0
+  gl.uniform1i(programInfo.uniformLocations.uSampler, 0)
+
   {
-    const count = 26
+    const count = 36
     const type = gl.UNSIGNED_SHORT
     const offset = 0
 
-    gl.bindTexture(gl.TEXTURE_2D, texture)
-    gl.activeTexture(gl.TEXTURE0)
-
-    gl.uniform1i(programInfo.uniformLocations.uSampler, 0)
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
     gl.drawElements(gl.TRIANGLES, count, type, offset)
   }
 
@@ -227,27 +266,50 @@ function render(now) {
 
 requestAnimationFrame(render)
 
-function initTexture(gl) {
+function loadTexture(gl, url) {
   const texture = gl.createTexture()
   gl.bindTexture(gl.TEXTURE_2D, texture)
 
-  const image = new Image()
-  image.crossOrigin = 'anonymous'
+  const level = 0
+  const internalFormat = gl.RGBA
+  const width = 1
+  const height = 1
+  const border = 0
+  const srcFormat = gl.RGBA
+  const srcType = gl.UNSIGNED_BYTE
+  const pixel = new Uint8Array([0, 0, 255, 255]) // opaque blue
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    level,
+    internalFormat,
+    width,
+    height,
+    border,
+    srcFormat,
+    srcType,
+    pixel
+  )
 
+  const image = new Image()
   image.onload = function () {
     gl.bindTexture(gl.TEXTURE_2D, texture)
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image)
 
-    const target = gl.TEXTURE_2D
-    const level = 0
-    const internalformat = gl.RGBA
-    const format = gl.RGBA
-    const type = gl.UNSIGNED_BYTE
-
-    gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-    gl.texImage2D(target, level, internalformat, format, type, image)
+    // WebGL1 has different requirements for power of 2 images
+    // vs non power of 2 images so check if the image is a
+    // power of 2 in both dimensions.
+    if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+      // Yes, it's a power of 2. Generate mips.
+      gl.generateMipmap(gl.TEXTURE_2D)
+    } else {
+      // No, it's not a power of 2. Turn of mips and set
+      // wrapping to clamp to edge
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    }
   }
-
-  image.src = './cubetexture.png'
+  image.src = url
 
   return texture
 }
