@@ -184,7 +184,7 @@ function draw(gl, deltaTime) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
   const modelMatrix = mat4.create()
-  mat4.scale(modelMatrix, modelMatrix, [0.1, 0.1, 0.1, 1])
+  mat4.scale(modelMatrix, modelMatrix, [0.2, 0.2, 0.2, 1])
   mat4.rotateX(modelMatrix, modelMatrix, radians)
   mat4.rotateY(modelMatrix, modelMatrix, radians)
 
