@@ -26,7 +26,15 @@ void main(void) {
   gl_Position = uViewMatrix * uModelMatrix * aVertexPosition;
   vTextureCoord = aTextureCoord;
 
-  vLighting = uLighting * uLightDirection;
+  highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
+
+  highp vec3 direction = normalize(vec3(uLightDirection));
+
+  highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
+
+  highp float directional = max(dot(transformedNormal.xyz, direction), 0.0);
+
+  vLighting = ambientLight + uLighting * directional;
 }
 `
 
@@ -215,6 +223,7 @@ function initBuffers(gl) {
   }
 }
 
+console.log(programInfo.attribLocations.aVertexNormal)
 gl.useProgram(program)
 let radians = 0
 function draw(gl, deltaTime) {
@@ -288,6 +297,14 @@ function draw(gl, deltaTime) {
   {
     // light
 
+    // 逆转置矩阵
+    const normalMatrix = mat4.create()
+    const modelViewMatrix = mat4.create()
+    mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix)
+
+    mat4.invert(normalMatrix, modelViewMatrix)
+    mat4.transpose(normalMatrix, normalMatrix)
+
     const numComponents = 3
     const type = gl.FLOAT
     const normalize = false
@@ -305,17 +322,22 @@ function draw(gl, deltaTime) {
     gl.enableVertexAttribArray(programInfo.attribLocations.aVertexNormal)
 
     const lightColor = vec3.create()
-    lightColor.set([1.0, 1.0, 0.0])
+    lightColor.set([0.2, 0.5, 0.0])
 
     gl.uniform3fv(programInfo.uniformLocations.uLighting, lightColor)
 
     const lightDirection = vec3.create()
-    lightDirection.set([0.5, 0.5, 1.0])
+    lightDirection.set([0.5, 0.5, -0.5])
 
     // 光线、法线方向要归一化
     vec3.normalize(lightDirection, lightDirection)
 
     gl.uniform3fv(programInfo.uniformLocations.uLightDirection, lightDirection)
+
+    gl.uniformMatrix4fv(
+      programInfo.uniformLocations.uNormalMatrix,
+      false,
+      normalMatrix);
   }
 
   {
