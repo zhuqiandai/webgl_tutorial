@@ -1,5 +1,5 @@
-import { mat4 } from 'gl-matrix'
-import { initShaderProgram } from '../../utils/webgl_utils'
+import { mat4, vec3 } from 'gl-matrix'
+import { initShaderProgram } from '../../../utils/webgl_utils'
 import './style.css'
 
 const webglContainer = document.getElementById('webgl-container')
@@ -7,16 +7,34 @@ const gl = webglContainer.getContext('webgl')
 
 const vsSource = `
 attribute vec4 aVertexPosition;
+attribute vec3 aVertexNormal;
 attribute vec2 aTextureCoord;
 
 uniform mat4 uModelMatrix;
 uniform mat4 uViewMatrix;
 
+// 转置矩阵
+uniform mat4 uNormalMatrix;
+
+uniform vec3 uLighting;
+uniform vec3 uLightDirection;
+
 varying highp vec2 vTextureCoord;
+varying highp vec3 vLighting;
 
 void main(void) {
   gl_Position = uViewMatrix * uModelMatrix * aVertexPosition;
   vTextureCoord = aTextureCoord;
+
+  highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
+
+  highp vec3 direction = normalize(vec3(uLightDirection));
+
+  highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
+
+  highp float directional = max(dot(transformedNormal.xyz, direction), 0.0);
+
+  vLighting = ambientLight + uLighting * directional;
 }
 `
 
@@ -24,11 +42,13 @@ void main(void) {
 
 const fsSource = `
 varying highp vec2 vTextureCoord;
+varying highp vec3 vLighting;
 
 uniform sampler2D uSampler;
 
 void main(void) {
-  gl_FragColor = texture2D(uSampler, vTextureCoord);
+  highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
+  gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);
 }
 `
 
@@ -38,16 +58,22 @@ const programInfo = {
   program,
   attribLocations: {
     aVertexPosition: gl.getAttribLocation(program, 'aVertexPosition'),
+    aVertexNormal: gl.getAttribLocation(program, 'aVertexNormal'),
     aTextureCoord: gl.getAttribLocation(program, 'aTextureCoord'),
   },
   uniformLocations: {
     uModelMatrix: gl.getUniformLocation(program, 'uModelMatrix'),
     uViewMatrix: gl.getUniformLocation(program, 'uViewMatrix'),
     uSampler: gl.getUniformLocation(program, 'uSampler'),
+
+    uNormalMatrix: gl.getUniformLocation(program, 'uNormalMatrix'),
+
+    uLighting: gl.getUniformLocation(program, 'uLighting'),
+    uLightDirection: gl.getUniformLocation(program, 'uLightDirection'),
   },
 }
 
-const { positionBuffer, textureCoordBuffer, indexBuffer } = initBuffers(gl)
+const { positionBuffer, textureCoordBuffer, indexBuffer, normalBuffer } = initBuffers(gl)
 
 const texture = loadTexture(gl, 'cubetexture.png')
 
@@ -111,6 +137,31 @@ function initBuffers(gl) {
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW)
 
+  const normalBuffer = gl.createBuffer()
+  gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
+
+  const vertexNormals = [
+    // Front
+    0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+
+    // Back
+    0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0,
+
+    // Top
+    0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
+
+    // Bottom
+    0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0,
+
+    // Right
+    1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+
+    // Left
+    -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0,
+  ]
+
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW)
+
   // Build the element array buffer; this specifies the indices
   // into the vertex arrays for each face's vertices.
 
@@ -168,13 +219,15 @@ function initBuffers(gl) {
     positionBuffer,
     textureCoordBuffer,
     indexBuffer,
+    normalBuffer,
   }
 }
 
+console.log(programInfo.attribLocations.aVertexNormal)
 gl.useProgram(program)
 let radians = 0
 function draw(gl, deltaTime) {
-  gl.clearColor(1.0, 1.0, 1.0, 1.0) // Clear to black, fully opaque
+  gl.clearColor(0.0, 0.0, 0.0, 1.0) // Clear to black, fully opaque
   gl.clearDepth(1.0) // Clear everything
   gl.enable(gl.DEPTH_TEST) // Enable depth testing
   gl.depthFunc(gl.LEQUAL) // Near things obscure far things
@@ -191,7 +244,7 @@ function draw(gl, deltaTime) {
   const modelLocation = programInfo.uniformLocations.uModelMatrix
 
   const viewMatrix = mat4.create()
-  // mat4.lookAt(viewMatrix, [0, 0, 0], [0, 0, 1], [0, 1, 0])
+  mat4.lookAt(viewMatrix, [0.2, 0.2, -0.2], [0, 0, 1], [0, 1, 0])
 
   const viewLocation = programInfo.uniformLocations.uViewMatrix
 
@@ -240,6 +293,52 @@ function draw(gl, deltaTime) {
 
   // Tell the shader we bound the texture to texture unit 0
   gl.uniform1i(programInfo.uniformLocations.uSampler, 0)
+
+  {
+    // light
+
+    // 逆转置矩阵
+    const normalMatrix = mat4.create()
+    const modelViewMatrix = mat4.create()
+    mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix)
+
+    mat4.invert(normalMatrix, modelViewMatrix)
+    mat4.transpose(normalMatrix, normalMatrix)
+
+    const numComponents = 3
+    const type = gl.FLOAT
+    const normalize = false
+    const stride = 0
+    const offset = 0
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
+    gl.vertexAttribPointer(
+      programInfo.attribLocations.aVertexNormal,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset
+    )
+    gl.enableVertexAttribArray(programInfo.attribLocations.aVertexNormal)
+
+    const lightColor = vec3.create()
+    lightColor.set([0.2, 0.5, 0.0])
+
+    gl.uniform3fv(programInfo.uniformLocations.uLighting, lightColor)
+
+    const lightDirection = vec3.create()
+    lightDirection.set([0.5, 0.5, -0.5])
+
+    // 光线、法线方向要归一化
+    vec3.normalize(lightDirection, lightDirection)
+
+    gl.uniform3fv(programInfo.uniformLocations.uLightDirection, lightDirection)
+
+    gl.uniformMatrix4fv(
+      programInfo.uniformLocations.uNormalMatrix,
+      false,
+      normalMatrix);
+  }
 
   {
     const count = 36

@@ -1,5 +1,5 @@
-import { mat4, vec3 } from 'gl-matrix'
-import { initShaderProgram } from '../../utils/webgl_utils'
+import { mat4 } from 'gl-matrix'
+import { initShaderProgram } from '../../../utils/webgl_utils'
 import './style.css'
 
 const webglContainer = document.getElementById('webgl-container')
@@ -16,39 +16,81 @@ uniform mat4 uViewMatrix;
 // 转置矩阵
 uniform mat4 uNormalMatrix;
 
-uniform vec3 uLighting;
-uniform vec3 uLightDirection;
+// 点光源的位置
+uniform vec3 uLightWorldPosition;
+uniform vec3 uLightColor;
+// 环境光
+uniform vec3 uAmbientLight;
 
-varying highp vec2 vTextureCoord;
-varying highp vec3 vLighting;
+varying vec2 vTextureCoord;
 
+// 点光源 相对于 表面的 方向
+varying vec3 vSurfaceToLight;
+
+// 法线
+varying vec3 vVertexNormal;
+
+// 点光源颜色
+varying vec3 vLightColor;
+varying vec3 vAmbientLight;
+ 
 void main(void) {
-  gl_Position = uViewMatrix * uModelMatrix * aVertexPosition;
+
+  // 世界矩阵
+  mat4 worldMatrix = uViewMatrix * uModelMatrix;
+
+  vec4 glPosition = worldMatrix * aVertexPosition;
+
+  // 表面的世界坐标
+  vec3 surfaceWorldPosition = glPosition.xyz;
+
+  // 表面光照方向
+  vSurfaceToLight = uLightWorldPosition - surfaceWorldPosition;
+
+  vLightColor = uLightColor;
+
+  vec4 transformNormal = vec4(aVertexNormal, 1.0) * uNormalMatrix;
+
+  // 法线
+  vVertexNormal = transformNormal.xyz;
+
+  gl_Position = glPosition;
+
   vTextureCoord = aTextureCoord;
 
-  highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
-
-  highp vec3 direction = normalize(vec3(uLightDirection));
-
-  highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
-
-  highp float directional = max(dot(transformedNormal.xyz, direction), 0.0);
-
-  vLighting = ambientLight + uLighting * directional;
+  vAmbientLight = uAmbientLight;
 }
 `
 
 // Fragment shader program
 
 const fsSource = `
-varying highp vec2 vTextureCoord;
-varying highp vec3 vLighting;
+precision mediump float;
+
+varying vec2 vTextureCoord;
+
+// 法线
+varying vec3 vVertexNormal;
+// 光照方向
+varying vec3 vSurfaceToLight;
+
+varying vec3 vLightColor;
+varying vec3 vAmbientLight;
 
 uniform sampler2D uSampler;
 
 void main(void) {
-  highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
-  gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);
+  // 归一化光线方向 法线方向
+  vec3 vVertexNormalDirection = normalize(vVertexNormal);
+  vec3 vSurfaceToLightDerection = normalize(vSurfaceToLight);
+
+  float directional = max(dot(vVertexNormalDirection, vSurfaceToLightDerection), 0.0);
+
+  vec3 light = vAmbientLight + vLightColor * directional;
+
+  vec4 texelColor = texture2D(uSampler, vTextureCoord);
+
+  gl_FragColor = vec4(texelColor.rgb * light, texelColor.a);
 }
 `
 
@@ -64,12 +106,12 @@ const programInfo = {
   uniformLocations: {
     uModelMatrix: gl.getUniformLocation(program, 'uModelMatrix'),
     uViewMatrix: gl.getUniformLocation(program, 'uViewMatrix'),
-    uSampler: gl.getUniformLocation(program, 'uSampler'),
-
     uNormalMatrix: gl.getUniformLocation(program, 'uNormalMatrix'),
+    uSampler: gl.getUniformLocation(program, 'uSampler'),
+    uLightWorldPosition: gl.getUniformLocation(program, 'uLightWorldPosition'),
 
-    uLighting: gl.getUniformLocation(program, 'uLighting'),
-    uLightDirection: gl.getUniformLocation(program, 'uLightDirection'),
+    uLightColor: gl.getUniformLocation(program, 'uLightColor'),
+    uAmbientLight: gl.getUniformLocation(program, 'uAmbientLight'),
   },
 }
 
@@ -137,31 +179,6 @@ function initBuffers(gl) {
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW)
 
-  const normalBuffer = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
-
-  const vertexNormals = [
-    // Front
-    0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
-
-    // Back
-    0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0,
-
-    // Top
-    0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
-
-    // Bottom
-    0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0,
-
-    // Right
-    1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0,
-
-    // Left
-    -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0,
-  ]
-
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW)
-
   // Build the element array buffer; this specifies the indices
   // into the vertex arrays for each face's vertices.
 
@@ -215,6 +232,30 @@ function initBuffers(gl) {
 
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
 
+  const normalBuffer = gl.createBuffer()
+  gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
+
+  const vertexNormals = [
+    // Front
+    0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+
+    // Back
+    0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0,
+
+    // Top
+    0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
+
+    // Bottom
+    0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0,
+
+    // Right
+    1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+
+    // Left
+    -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0,
+  ]
+
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW)
   return {
     positionBuffer,
     textureCoordBuffer,
@@ -223,7 +264,6 @@ function initBuffers(gl) {
   }
 }
 
-console.log(programInfo.attribLocations.aVertexNormal)
 gl.useProgram(program)
 let radians = 0
 function draw(gl, deltaTime) {
@@ -244,7 +284,7 @@ function draw(gl, deltaTime) {
   const modelLocation = programInfo.uniformLocations.uModelMatrix
 
   const viewMatrix = mat4.create()
-  mat4.lookAt(viewMatrix, [0.2, 0.2, -0.2], [0, 0, 1], [0, 1, 0])
+  // mat4.lookAt(viewMatrix, [0, 0, 0], [0, 0, 1], [0, 1, 0])
 
   const viewLocation = programInfo.uniformLocations.uViewMatrix
 
@@ -280,30 +320,15 @@ function draw(gl, deltaTime) {
     gl.enableVertexAttribArray(programInfo.attribLocations.aTextureCoord)
   }
 
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-
-  gl.uniformMatrix4fv(modelLocation, false, modelMatrix)
-  gl.uniformMatrix4fv(viewLocation, false, viewMatrix)
-
-  // Tell WebGL we want to affect texture unit 0
-  gl.activeTexture(gl.TEXTURE0)
-
-  // Bind the texture to texture unit 0
-  gl.bindTexture(gl.TEXTURE_2D, texture)
-
-  // Tell the shader we bound the texture to texture unit 0
-  gl.uniform1i(programInfo.uniformLocations.uSampler, 0)
-
   {
     // light
-
-    // 逆转置矩阵
     const normalMatrix = mat4.create()
     const modelViewMatrix = mat4.create()
     mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix)
 
     mat4.invert(normalMatrix, modelViewMatrix)
     mat4.transpose(normalMatrix, normalMatrix)
+    gl.uniformMatrix4fv(programInfo.uniformLocations.uNormalMatrix, false, normalMatrix)
 
     const numComponents = 3
     const type = gl.FLOAT
@@ -321,24 +346,24 @@ function draw(gl, deltaTime) {
     )
     gl.enableVertexAttribArray(programInfo.attribLocations.aVertexNormal)
 
-    const lightColor = vec3.create()
-    lightColor.set([0.2, 0.5, 0.0])
-
-    gl.uniform3fv(programInfo.uniformLocations.uLighting, lightColor)
-
-    const lightDirection = vec3.create()
-    lightDirection.set([0.5, 0.5, -0.5])
-
-    // 光线、法线方向要归一化
-    vec3.normalize(lightDirection, lightDirection)
-
-    gl.uniform3fv(programInfo.uniformLocations.uLightDirection, lightDirection)
-
-    gl.uniformMatrix4fv(
-      programInfo.uniformLocations.uNormalMatrix,
-      false,
-      normalMatrix);
+    gl.uniform3fv(programInfo.uniformLocations.uLightWorldPosition, [0, 0, 20])
+    gl.uniform3fv(programInfo.uniformLocations.uLightColor, [1, 1, 1])
+    gl.uniform3fv(programInfo.uniformLocations.uAmbientLight, [0.3, 0.3, 0.3])
   }
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+
+  gl.uniformMatrix4fv(modelLocation, false, modelMatrix)
+  gl.uniformMatrix4fv(viewLocation, false, viewMatrix)
+
+  // Tell WebGL we want to affect texture unit 0
+  gl.activeTexture(gl.TEXTURE0)
+
+  // Bind the texture to texture unit 0
+  gl.bindTexture(gl.TEXTURE_2D, texture)
+
+  // Tell the shader we bound the texture to texture unit 0
+  gl.uniform1i(programInfo.uniformLocations.uSampler, 0)
 
   {
     const count = 36
