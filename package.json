@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/zhuqiandai/webgl_tutorial/issues"
   },
-  "homepage": "https://github.com/zhuqiandai/webgl_tutorial#readme"
+  "homepage": "https://github.com/zhuqiandai/webgl_tutorial#readme",
+  "dependencies": {
+    "three": "^0.134.0"
+  }
 }
