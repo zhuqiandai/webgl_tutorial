@@ -11,6 +11,8 @@
     "vite": "^2.6.4"
   },
   "dependencies": {
-    "babylonjs": "^4.2.0"
+    "@types/mapbox-gl": "^2.4.2",
+    "babylonjs": "^4.2.0",
+    "mapbox-gl": "^2.6.1"
   }
 }
