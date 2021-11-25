@@ -27,11 +27,15 @@ if (canvas) {
 
   const light = new HemisphericLight('light', new Vector3(1, 1, 0), scene)
 
-  MeshBuilder.CreateBox('box', {}, scene)
+  const box = MeshBuilder.CreateBox('box', { height: 1, depth: 3 }, scene)
+  box.position.y = 0.5
+
+  MeshBuilder.CreateGround('ground', { width: 10, height: 10 }, scene)
+
   SceneLoader.ImportMeshAsync(
     'model',
     'https://assets.babylonjs.com/meshes/',
-    'box.babylon',
+    'box.babylon'
   )
 
   camera.attachControl(canvas, true)

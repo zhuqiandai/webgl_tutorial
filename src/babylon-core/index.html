@@ -8,15 +8,28 @@
 
     <style>
       #container {
-        width: 500px;
-        height: 500px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 80%;
+        height: 100%;
+      }
+
+      #list {
+        position: absolute;
+        left: 80%;
       }
     </style>
   </head>
   <body>
-    <div id="app">
-      <canvas id="container"></canvas>
-    </div>
+    <canvas id="container"></canvas>
+
+    <ol id="list">
+      <li>
+        <a href="./pages/base_mesh/index.html">base_mesh</a>
+      </li>
+    </ol>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
