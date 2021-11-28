@@ -54,6 +54,40 @@ const positionFloatData = new Float32Array([
     -1.0,  1.0, -1.0
 ])
 
+// prettier-ignore
+const texFloatData = new Uint8Array([
+    // Front
+    0.0,  0.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    0.0,  1.0,
+    // Back
+    0.0,  0.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    0.0,  1.0,
+    // Top
+    0.0,  0.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    0.0,  1.0,
+    // Bottom
+    0.0,  0.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    0.0,  1.0,
+    // Right
+    0.0,  0.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    0.0,  1.0,
+    // Left
+    0.0,  0.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    0.0,  1.0
+])
+
 function main() {
   const container = document.getElementById('container')
   const gl = container.getContext('webgl')
@@ -66,66 +100,93 @@ function main() {
         program,
         vertexLocation: {
           aPosition: gl.getAttribLocation(program, 'aPosition'),
+          aTexCoord: gl.getAttribLocation(program, 'aTexCoord'),
         },
         uniformLocation: {
           uMVPMatrix: gl.getUniformLocation(program, 'uMVPMatrix'),
-          uColor: gl.getUniformLocation(program, 'uColor'),
+          uSampler: gl.getUniformLocation(program, 'uSampler'),
         },
       }
 
       gl.useProgram(programInfo.program)
 
+      // buffers
       const indexBuffer = initBuffer(gl, gl.ELEMENT_ARRAY_BUFFER, indexIntData)
-
       const positionBuffer = initBuffer(gl, gl.ARRAY_BUFFER, positionFloatData)
+      const textureBuffer = initBuffer(gl, gl.ARRAY_BUFFER, texFloatData)
+
+      // texture
+      const texture = loadTexture(gl)
 
       let then = 0
       let squareRotation = 0.0
       function draw(gl, deltaTime) {
         gl.clearColor(0.0, 0.0, 0.0, 1.0)
-        gl.clear(gl.COLOR_BUFFER_BIT)
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+        gl.enable(gl.DEPTH_TEST) // Enable depth testing
+        gl.depthFunc(gl.LEQUAL) // Near things obscure far things
 
-        // 顶点
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-        const index = programInfo.vertexLocation.aPosition
-        const size = 3
-        const type = gl.FLOAT
-        const normalized = false
-        const stride = 0
-        const offset = 0
+        {
+          // 顶点
+          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+          const index = programInfo.vertexLocation.aPosition
+          const size = 3
+          const type = gl.FLOAT
+          const normalized = false
+          const stride = 0
+          const offset = 0
 
-        /**
-         * Position 是一个 vec4 变量
-         * 使用 vertexAttribPointer 去分配 ARRAY_BUFFER 中的值
-         * 参数为分配规则
-         */
-        gl.vertexAttribPointer(index, size, type, normalized, stride, offset)
-        gl.enableVertexAttribArray(index)
+          /**
+           * Position 是一个 vec4 变量
+           * 使用 vertexAttribPointer 去分配 ARRAY_BUFFER 中的值
+           * 参数为分配规则
+           */
+          gl.vertexAttribPointer(index, size, type, normalized, stride, offset)
+          gl.enableVertexAttribArray(index)
 
-        // 颜色
-        gl.uniform4f(programInfo.uniformLocation.uColor, 1.0, 1.0, 0.0, 1.0)
+          /**
+           * 顶点索引
+           * 顶点的索引缓冲区 只是存储了 26 个顶点的索引，再使用这 26 个索引去绘制图形
+           *
+           * 如果使用索引的话，每一个点都出现在三个面中，就要使用 26 * 3 个顶点来绘制
+           */
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+        }
 
-        /**
-         * 顶点索引
-         * 顶点的索引缓冲区 只是存储了 26 个顶点的索引，再使用这 26 个索引去绘制图形
-         *
-         * 如果使用索引的话，每一个点都出现在三个面中，就要使用 26 * 3 个顶点来绘制
-         */
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+        {
+          // MVP 矩阵
+          const mvpMatrix = mat4.create()
+          squareRotation += deltaTime
 
-        // MVP 矩阵
-        const mvpMatrix = mat4.create()
-        squareRotation += deltaTime
+          mat4.scale(mvpMatrix, mvpMatrix, [0.25, 0.25, 0.25])
+          mat4.rotateX(mvpMatrix, mvpMatrix, squareRotation)
+          mat4.rotateY(mvpMatrix, mvpMatrix, squareRotation)
 
-        mat4.scale(mvpMatrix, mvpMatrix, [0.25, 0.25, 0.25])
-        mat4.rotateX(mvpMatrix, mvpMatrix, squareRotation)
-        mat4.rotateY(mvpMatrix, mvpMatrix, squareRotation)
+          gl.uniformMatrix4fv(
+            programInfo.uniformLocation.uMVPMatrix,
+            false,
+            mvpMatrix
+          )
+        }
 
-        gl.uniformMatrix4fv(
-          programInfo.uniformLocation.uMVPMatrix,
-          false,
-          mvpMatrix
-        )
+        {
+          // 纹理 - buffer
+          gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer)
+          const index = programInfo.vertexLocation.aTexCoord
+          const size = 2
+          const type = gl.FLOAT
+          const normalized = false
+          const stride = 0
+          const offset = 0
+          gl.vertexAttribPointer(index, size, type, normalized, stride, offset)
+          gl.enableVertexAttribArray(index)
+
+          // 纹理 - sampler
+          gl.activeTexture(gl.TEXTURE0)
+          gl.bindTexture(gl.TEXTURE_2D, texture)
+
+          gl.uniform1i(programInfo.uniformLocation.uSampler, 0)
+        }
 
         {
           const mode = gl.TRIANGLES
@@ -148,6 +209,51 @@ function main() {
       }
 
       requestAnimationFrame(render)
+
+      function loadTexture(gl) {
+        const texture = gl.createTexture()
+        gl.bindTexture(gl.TEXTURE_2D, texture)
+
+        const target = gl.TEXTURE_2D
+        const level = 0
+        const internalFormat = gl.RGBA
+        const width = 1
+        const height = 1
+        const border = 0
+        const srcFormat = gl.RGBA
+        const srcType = gl.UNSIGNED_BYTE
+        const pixel = new Uint8Array([0, 0, 255, 255])
+        gl.texImage2D(
+          target,
+          level,
+          internalFormat,
+          width,
+          height,
+          border,
+          srcFormat,
+          srcType,
+          pixel
+        )
+
+        const image = new Image()
+
+        image.onload = function () {
+          gl.bindTexture(gl.TEXTURE_2D, texture)
+          gl.texImage2D(
+            target,
+            level,
+            internalFormat,
+            srcFormat,
+            srcType,
+            image
+          )
+          gl.generateMipmap(gl.TEXTURE_2D)
+        }
+
+        image.src = './firefox.png'
+
+        return texture
+      }
     })
   })
 }

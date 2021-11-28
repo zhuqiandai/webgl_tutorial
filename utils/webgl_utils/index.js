@@ -1,3 +1,4 @@
 import initShaderProgram from './initShaders'
+import loadShaderFromFile from './loadShaderFile'
 
-export { initShaderProgram }
+export { initShaderProgram, loadShaderFromFile }
