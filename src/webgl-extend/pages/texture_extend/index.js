@@ -238,7 +238,7 @@ function main() {
         const image = new Image()
 
         image.onload = function () {
-          gl.bindTexture(gl.TEXTURE_2D, texture)
+          gl.bindTexture(target, texture)
           gl.texImage2D(
             target,
             level,
@@ -250,7 +250,7 @@ function main() {
           gl.generateMipmap(gl.TEXTURE_2D)
         }
 
-        image.src = './firefox.png'
+        image.src = 'firefox.png'
 
         return texture
       }
