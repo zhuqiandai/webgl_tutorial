@@ -188,6 +188,11 @@ source-map-js@^1.0.1:
   resolved "https://registry.npmjs.org/source-map-js/-/source-map-js-1.0.1.tgz#a1741c131e3c77d048252adfa24e23b908670caf"
   integrity sha512-4+TN2b3tqOCd/kaGRJ/sTYA0tR0mdXx26ipdolxcwtJVqEnqNYvlCAt1q3ypy4QMlYus+Zh34RNtYLoq2oQ4IA==
 
+spectorjs@^0.9.27:
+  version "0.9.27"
+  resolved "https://registry.npmjs.org/spectorjs/-/spectorjs-0.9.27.tgz#9b3893e90da124a9db1d9d1c5ab695bd0af0dcd5"
+  integrity sha512-eujFAuFWdW9S5wT++ks2o1zShN5Vd8Zple2NB6oM5G5tXqNtGbk6Yg3mfCpL03Bbq0djqGJAeswYk0VfpuPfIQ==
+
 vite@^2.6.4:
   version "2.6.14"
   resolved "https://registry.npmjs.org/vite/-/vite-2.6.14.tgz#35c09a15e4df823410819a2a239ab11efb186271"

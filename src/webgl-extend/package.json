@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@mercator/gl-utils": "^1.0.12",
-    "gl-matrix": "^3.4.3"
+    "gl-matrix": "^3.4.3",
+    "spectorjs": "^0.9.27"
   }
 }
