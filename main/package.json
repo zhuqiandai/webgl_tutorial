@@ -10,6 +10,7 @@
     "@mercator/gl-utils": "^1.0.12",
     "@types/node": "^16.11.11",
     "antd": "^4.17.2",
+    "gl-matrix": "^3.4.3",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
     "react-router-dom": "6"

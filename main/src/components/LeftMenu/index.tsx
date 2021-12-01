@@ -30,6 +30,7 @@ export default function LeftMenu() {
         <Menu.Item key="/">home page</Menu.Item>
         <SubMenu key="fundamentals" title="fundamentals">
           <Menu.Item key="/fundamentals/triangles">triangles</Menu.Item>
+          <Menu.Item key="/fundamentals/projection">projection</Menu.Item>
         </SubMenu>
 
         <SubMenu key="advanced" title="advanced">

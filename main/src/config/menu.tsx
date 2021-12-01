@@ -1,6 +1,7 @@
 import React, {LazyExoticComponent, ReactElement} from "react";
 import HomePage from "src/pages";
 import Triangles from "src/pages/Base/Triangles";
+import Projection from "src/pages/Base/Projection";
 
 const lazyComponent = (element: LazyExoticComponent<any>) => <React.Suspense
   fallback={<>loading</>}>{element}</React.Suspense>
@@ -24,6 +25,11 @@ const menuConfig: Array<MenuConfig> = [
     path: '/fundamentals/triangles',
     name: 'triangles',
     element: <Triangles/>
+  },
+  {
+    path: '/fundamentals/projection',
+    name: 'projection',
+    element: <Projection />
   },
   {
     path: '/advanced',
