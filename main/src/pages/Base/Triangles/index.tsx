@@ -11,20 +11,26 @@ export default function Triangles(props: Props) {
 
   // prettier-ignore
   const positionData = new Float32Array([
+    -0.1, 0.2, 1.0,
+     0.0, 0.2, 1.0,
+    -0.1, -0.3, 1.0,
+    0.0, 0.2, 1.0,
+    -0.1, -0.3, 1.0,
+    0.0, -0.3, 1.0,
+
+    0.0, 0.2, 1.0,
+    0.0, 0.1, 1.0,
+    0.2, 0.2, 1.0,
+    0.0, 0.1, 1.0,
+    0.2, 0.2, 1.0,
+    0.2, 0.1, 1.0,
+
     0.0, 0.0, 1.0,
-    0.0, -0.8, 1.0,
-    0.2, -0.8, 1.0,
-    0.2, 0.0, 1.0,
-
-    0.2, 0.0, 1.0,
-    0.5, 0.0, 1.0,
-    0.5, -0.2, 1.0,
-    0.2, -0.2, 1.0,
-
-    0.2, -0.4, 1.0,
-    0.4, -0.4, 1.0,
-    0.4, -0.6, 1.0,
-    0.2, -0.6, 1.0,
+    0.0, -0.1, 1.0,
+    0.1, 0.0, 1.0,
+    0.0, -0.1, 1.0,
+    0.1, 0.0, 1.0,
+    0.1, -0.1, 1.0
   ])
 
   useEffect(() => {
@@ -83,9 +89,9 @@ export default function Triangles(props: Props) {
 
               {
                 // exe
-                const mode = gl.TRIANGLE_FAN
+                const mode = gl.TRIANGLES
                 const first = 0
-                const count = 12
+                const count = 24
 
                 gl.drawArrays(mode, first, count)
               }
