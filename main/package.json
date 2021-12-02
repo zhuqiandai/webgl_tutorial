@@ -1,0 +1,27 @@
+{
+  "name": "react-tutorial-template",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "@mercator/gl-utils": "^1.0.12",
+    "@types/node": "^16.11.11",
+    "antd": "^4.17.2",
+    "gl-matrix": "^3.4.3",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0",
+    "react-router-dom": "6"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
+    "@vitejs/plugin-react": "^1.0.0",
+    "cesium": "^1.87.1",
+    "typescript": "^4.3.2",
+    "vite": "^2.6.4",
+    "vite-plugin-cesium": "^1.2.11"
+  }
+}
