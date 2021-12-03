@@ -192,7 +192,7 @@ export default function CoordinateSpace(props: Props) {
                 const location = programInfo.uniformLocation.uProjectionMatrix
 
                 const projectionMatrix = mat4.create()
-                mat4.perspective(projectionMatrix, 10, 1, 1, 1000)
+                mat4.perspective(projectionMatrix, 30, 1, 1, 1000)
 
                 gl.uniformMatrix4fv(location, false, projectionMatrix)
               }

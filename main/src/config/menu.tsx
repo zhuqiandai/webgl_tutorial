@@ -1,6 +1,6 @@
 import React, {ReactElement} from "react";
 import HomePage from "src/pages";
-import ClockElement from "src/pages/Base/Clock";
+import CircleElement from "src/pages/Base/CircleElement";
 import CoordinateSpace from "src/pages/Base/CoordinateSpace";
 
 
@@ -22,15 +22,15 @@ const menuConfig: Array<MenuConfig> = [
     name: 'base',
     children: [
       {
-        path: '/coordinateSpace',
-        name: 'coordinateSpace',
-        element: <CoordinateSpace />
+        path: '/circleElement',
+        name: 'circleElement',
+        element: <CircleElement/>
       },
       {
-        path: '/clockElement',
-        name: 'clockElement',
-        element: <ClockElement/>
-      },
+        path: '/coordinateSpace',
+        name: 'coordinateSpace',
+        element: <CoordinateSpace/>
+      }
     ]
   },
   {
