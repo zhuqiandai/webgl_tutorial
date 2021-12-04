@@ -2,6 +2,7 @@ import React, {ReactElement} from "react";
 import HomePage from "src/pages";
 import CircleElement from "src/pages/Base/CircleElement";
 import CoordinateSpace from "src/pages/Base/CoordinateSpace";
+import RotateTransform from "src/pages/Transform/Rotate";
 
 
 export interface MenuConfig {
@@ -30,6 +31,17 @@ const menuConfig: Array<MenuConfig> = [
         path: '/coordinateSpace',
         name: 'coordinateSpace',
         element: <CoordinateSpace/>
+      }
+    ]
+  },
+  {
+    path: '/transform',
+    name: 'transform',
+    children: [
+      {
+        path: '/rotate',
+        name: 'rotate',
+        element: <RotateTransform />
       }
     ]
   },

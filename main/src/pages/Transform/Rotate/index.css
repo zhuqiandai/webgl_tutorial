@@ -1,0 +1,7 @@
+.card {
+    position: absolute;
+    right: 4rem;
+    height: 4rem;
+    min-width: 15rem;
+    height: auto;
+}

@@ -298,10 +298,10 @@
   resolved "https://registry.nlark.com/@ctrl/tinycolor/download/@ctrl/tinycolor-3.4.0.tgz#c3c5ae543c897caa9c2a68630bed355be5f9990f"
   integrity sha1-w8WuVDyJfKqcKmhjC+01W+X5mQ8=
 
-"@mercator/gl-utils@^1.0.12":
-  version "1.0.12"
-  resolved "https://registry.npmjs.org/@mercator/gl-utils/-/gl-utils-1.0.12.tgz#48732e55b67ba104aa7b858036e1ea86f6873cb3"
-  integrity sha512-BjcuNlpZrzHOz5x57X406JsdETZAVJEbuKx12c6xMb0M9AEhRWFMMSuPxk62cIBa3GvPGJnihbUnsNlEMVjlSQ==
+"@mercator/gl-utils@^1.0.16":
+  version "1.0.16"
+  resolved "https://registry.npmjs.org/@mercator/gl-utils/-/gl-utils-1.0.16.tgz#dbda8218b884a583c9c51bbf5bf96cc7230e2163"
+  integrity sha512-xNH8SlZJnDknxIKflJDeERUrOlKCm7NgQyQzWISAja+fcr18GRbBeqQaP2GpI+1vcmvHvdJkztJt53F0xM/wdQ==
 
 "@rollup/pluginutils@^4.0.0", "@rollup/pluginutils@^4.1.1":
   version "4.1.1"
