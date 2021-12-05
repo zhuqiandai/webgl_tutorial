@@ -15,13 +15,15 @@ export default function LeftMenu() {
     return menuConfig.map(config => {
       const linkPath = parentPath ? parentPath + config.path : config.path
 
-      const element = <Menu.Item key={config.path}>
-        <Link to={linkPath}>{config.name}</Link>
+      const inheritParentPath = linkPath
+
+      const element = <Menu.Item key={config.name}>
+        <Link to={inheritParentPath}>{config.name}</Link>
       </Menu.Item>
 
       if (config.children && config.children.length > 0) {
-        return <SubMenu key={config.path} title={config.name}>
-          {recursionGenerateMenu(config.children, config.path)}
+        return <SubMenu key={config.name} title={config.name}>
+          {recursionGenerateMenu(config.children, inheritParentPath)}
         </SubMenu>
       }
 

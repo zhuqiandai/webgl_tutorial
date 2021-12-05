@@ -3,7 +3,8 @@ import HomePage from "src/pages";
 import CircleElement from "src/pages/Base/CircleElement";
 import CoordinateSpace from "src/pages/Base/CoordinateSpace";
 import RotateTransform from "src/pages/Transform/Rotate";
-import LightPage from "src/pages/Base/Light";
+import DirectionLight from "src/pages/Base/Light/DirectionLight";
+import PointLight from "src/pages/Base/Light/PointLight";
 
 
 export interface MenuConfig {
@@ -34,9 +35,20 @@ const menuConfig: Array<MenuConfig> = [
         element: <CoordinateSpace/>
       },
       {
-        path: '/lightPage',
-        name: 'lightPage',
-        element: <LightPage />
+        path: '/light',
+        name: 'light',
+        children: [
+          {
+            path: '/directionLight',
+            name: 'directionLight',
+            element: <DirectionLight />
+          },
+          {
+            path: '/pointLight',
+            name: 'pointLight',
+            element: <PointLight />
+          }
+        ]
       }
     ]
   },
@@ -47,7 +59,7 @@ const menuConfig: Array<MenuConfig> = [
       {
         path: '/rotate',
         name: 'rotate',
-        element: <RotateTransform />
+        element: <RotateTransform/>
       }
     ]
   },

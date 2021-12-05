@@ -9,7 +9,7 @@ import './index.css'
 interface Props {
 }
 
-export default function LightPage(props: Props) {
+export default function PointLight(props: Props) {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -52,6 +52,9 @@ export default function LightPage(props: Props) {
     -1.0, 1.0, -1.0
   ]
 
+  const positionData = new Float32Array(positions)
+
+
   // prettier-ignore
   const normals: number[] = [
     // Front
@@ -93,7 +96,6 @@ export default function LightPage(props: Props) {
 
   const normalData = new Float32Array(normals)
 
-  const positionData = new Float32Array(positions)
 
   // prettier-ignore
   const cubeVertexIndicesData = new Uint16Array([
@@ -105,60 +107,34 @@ export default function LightPage(props: Props) {
     20, 21, 22, 20, 22, 23    // left
   ])
 
-  // prettier-ignore
-  const color = [
-    [1.0, 1.0, 1.0, 1.0],    // Front face: white
-    [1.0, 0.0, 0.0, 1.0],    // Back face: red
-    [0.0, 1.0, 0.0, 1.0],    // Top face: green
-    [0.0, 0.0, 1.0, 1.0],    // Bottom face: blue
-    [1.0, 1.0, 0.0, 1.0],    // Right face: yellow
-    [1.0, 0.0, 1.0, 1.0]     // Left face: purple
-  ]
-  const colors: number[] = []
-
-  for (let i = 0; i < 6; i++) {
-
-    const co = color[i]
-
-    for (let j = 0; j < 4; j++) {
-      colors.push(...co)
-    }
-  }
-
-  const colorData = new Float32Array(colors)
-
 
   useEffect(() => {
     if (canvasRef.current) {
       const gl = canvasRef.current.getContext('webgl')
 
       if (gl) {
-        loadShaderFile(`light/index.vert`).then((vsSource: unknown) => {
-          loadShaderFile(`light/index.frag`).then((fsSource: unknown) => {
+        loadShaderFile(`point/index.vert`).then((vsSource: string) => {
+          loadShaderFile(`point/index.frag`).then((fsSource: string) => {
             const program = initShaderProgram(gl, vsSource, fsSource)
 
             const positionBuffer = initBuffer(gl, gl.ARRAY_BUFFER, positionData)
-            const normalsBuffer = initBuffer(gl, gl.ARRAY_BUFFER, normalData)
             const cubeVertexIndiceBuffer = initBuffer(gl, gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndicesData)
 
-            const colorBuffer = initBuffer(gl, gl.ARRAY_BUFFER, colorData)
+            const normalBuffer = initBuffer(gl, gl.ARRAY_BUFFER, normalData)
 
             const programInfo = {
               program,
               vertexLocation: {
                 aPosition: gl.getAttribLocation(program, 'aPosition'),
-                aColor: gl.getAttribLocation(program, 'aColor'),
-
                 aNormal: gl.getAttribLocation(program, 'aNormal')
               },
               uniformLocation: {
-                uLightDirection: gl.getUniformLocation(program, 'uLightDirection'),
-                uLightColor: gl.getUniformLocation(program, 'uLightColor'),
-                uAmbientLight: gl.getUniformLocation(program, 'uAmbientLight'),
-
                 uModelMatrix: gl.getUniformLocation(program, 'uModelMatrix'),
                 uViewMatrix: gl.getUniformLocation(program, 'uViewMatrix'),
-                uProjectionMatrix: gl.getUniformLocation(program, 'uProjectionMatrix')
+                uProjectionMatrix: gl.getUniformLocation(program, 'uProjectionMatrix'),
+
+                uLightPosition: gl.getUniformLocation(program, 'uLightPosition'),
+                uLightColor: gl.getUniformLocation(program, 'uLightColor')
               }
             }
 
@@ -194,21 +170,6 @@ export default function LightPage(props: Props) {
               }
 
               {
-                // color
-                gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer)
-
-                const location = programInfo.vertexLocation.aColor
-                const size = 4
-                const type = gl.FLOAT
-                const normalized = false
-                const stride = 0
-                const offset = 0
-
-                gl.vertexAttribPointer(location, size, type, normalized, stride, offset)
-                gl.enableVertexAttribArray(location)
-              }
-
-              {
                 // model transform
                 const location = programInfo.uniformLocation.uModelMatrix
 
@@ -217,8 +178,8 @@ export default function LightPage(props: Props) {
                 squareRotation += time
 
                 mat4.scale(modelMatrix, modelMatrix, [0.75, 0.75, 0.75])
-                mat4.rotateX(modelMatrix, modelMatrix, squareRotation)
-                // mat4.rotateY(modelMatrix, modelMatrix, squareRotation)
+                // mat4.rotateX(modelMatrix, modelMatrix, squareRotation)
+                mat4.rotateY(modelMatrix, modelMatrix, squareRotation)
                 mat4.rotateZ(modelMatrix, modelMatrix, squareRotation)
 
                 gl.uniformMatrix4fv(location, false, modelMatrix)
@@ -246,28 +207,23 @@ export default function LightPage(props: Props) {
 
               {
                 // light
+                gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
 
-                const normalLocation = programInfo.vertexLocation.aNormal
-
-                const directionLocation = programInfo.uniformLocation.uLightDirection
-                const colorLocation = programInfo.uniformLocation.uLightColor
-
-                const ambientLocation = programInfo.uniformLocation.uAmbientLight
-
-                gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer)
-
+                const location = programInfo.vertexLocation.aNormal
                 const size = 3
                 const type = gl.FLOAT
                 const normalized = false
                 const stride = 0
                 const offset = 0
-                gl.vertexAttribPointer(normalLocation, size, type, normalized, stride, offset)
-                gl.enableVertexAttribArray(normalLocation)
 
-                gl.uniform3fv(directionLocation, [0.0, 0.0, -1.0])
-                gl.uniform3fv(colorLocation, [0.5, 0.5, 0.75])
+                gl.vertexAttribPointer(location, size, type, normalized, stride, offset)
+                gl.enableVertexAttribArray(location)
 
-                gl.uniform3fv(ambientLocation, [0.6, 0.6, 0.6])
+                const lightPosition = programInfo.uniformLocation.uLightPosition
+                gl.uniform3fv(lightPosition, [0, 0, 3])
+
+                const colorLocation = programInfo.uniformLocation.uLightColor
+                gl.uniform3fv(colorLocation, [1, 0.2, 0.6])
               }
 
               {

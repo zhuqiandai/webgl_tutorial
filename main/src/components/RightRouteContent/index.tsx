@@ -10,12 +10,14 @@ export default function RightRouteContent() {
     return menuConfig.map(config => {
       const routePath = parentPath ? parentPath + config.path : config.path
 
-      const route = <Route key={config.path} path={routePath}
+      const inheritParentPath = routePath
+
+      const route = <Route key={config.name} path={inheritParentPath}
                            element={config.element}/>
 
       if (config.children && config.children.length > 0) {
         return <Route
-          key={config.path}>{recursionGenerateRoute(config.children, config.path)}</Route>
+          key={config.name}>{recursionGenerateRoute(config.children, inheritParentPath)}</Route>
       }
 
       return route
