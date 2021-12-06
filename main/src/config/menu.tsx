@@ -5,6 +5,7 @@ import CoordinateSpace from "src/pages/Base/CoordinateSpace";
 import RotateTransform from "src/pages/Transform/Rotate";
 import DirectionLight from "src/pages/Base/Light/DirectionLight";
 import PointLight from "src/pages/Base/Light/PointLight";
+import ReflectLight from "src/pages/Base/Light/ReflectLight";
 
 
 export interface MenuConfig {
@@ -47,6 +48,11 @@ const menuConfig: Array<MenuConfig> = [
             path: '/pointLight',
             name: 'pointLight',
             element: <PointLight />
+          },
+          {
+            path: '/reflect',
+            name: 'reflect',
+            element: <ReflectLight />
           }
         ]
       }

@@ -2,6 +2,9 @@
 precision mediump float;
 #endif
 
+uniform vec3 uLightColor;
+uniform vec3 uLightPosition;
+
 varying vec3 vColor;
 
 void main(void) {

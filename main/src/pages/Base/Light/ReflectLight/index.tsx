@@ -1,7 +1,7 @@
 import React, {useRef, useEffect} from 'react';
 // @ts-ignore
 import {initShaderProgram, initBuffer, loadShaderFile} from '@mercator/gl-utils'
-import {mat4} from 'gl-matrix'
+import {mat4, vec3} from 'gl-matrix'
 import {Card} from "antd";
 
 import './index.css'
@@ -9,7 +9,7 @@ import './index.css'
 interface Props {
 }
 
-export default function PointLight(props: Props) {
+export default function ReflectLight(props: Props) {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -113,8 +113,8 @@ export default function PointLight(props: Props) {
       const gl = canvasRef.current.getContext('webgl')
 
       if (gl) {
-        loadShaderFile(`point/index.vert`).then((vsSource: unknown) => {
-          loadShaderFile(`point/index.frag`).then((fsSource: unknown) => {
+        loadShaderFile(`reflect/index.vert`).then((vsSource: unknown) => {
+          loadShaderFile(`reflect/index.frag`).then((fsSource: unknown) => {
             const program = initShaderProgram(gl, vsSource, fsSource)
 
             const positionBuffer = initBuffer(gl, gl.ARRAY_BUFFER, positionData)
@@ -134,7 +134,9 @@ export default function PointLight(props: Props) {
                 uProjectionMatrix: gl.getUniformLocation(program, 'uProjectionMatrix'),
 
                 uLightPosition: gl.getUniformLocation(program, 'uLightPosition'),
-                uLightColor: gl.getUniformLocation(program, 'uLightColor')
+                uLightColor: gl.getUniformLocation(program, 'uLightColor'),
+
+                uCameraPosition: gl.getUniformLocation(program, 'uCameraPosition')
               }
             }
 
@@ -175,7 +177,7 @@ export default function PointLight(props: Props) {
 
                 const modelMatrix = mat4.create()
 
-                squareRotation += time
+                squareRotation += time / 2
 
                 mat4.scale(modelMatrix, modelMatrix, [0.75, 0.75, 0.75])
                 mat4.rotateX(modelMatrix, modelMatrix, squareRotation)
@@ -190,7 +192,13 @@ export default function PointLight(props: Props) {
                 const location = programInfo.uniformLocation.uViewMatrix
 
                 const viewMatrix = mat4.create()
-                mat4.lookAt(viewMatrix, [0, 0, 5], [0, 0, -1], [0, 1, 0])
+                const cameraPosition = vec3.create()
+                vec3.set(cameraPosition, 0, 0, 3)
+
+                const cameraLocation = programInfo.uniformLocation.uCameraPosition
+                gl.uniform3fv(cameraLocation, cameraPosition)
+
+                mat4.lookAt(viewMatrix, cameraPosition, [0, 0, -1], [0, 1, 0])
 
                 gl.uniformMatrix4fv(location, false, viewMatrix)
               }
@@ -220,10 +228,10 @@ export default function PointLight(props: Props) {
                 gl.enableVertexAttribArray(location)
 
                 const lightPosition = programInfo.uniformLocation.uLightPosition
-                gl.uniform3fv(lightPosition, [0, 0, 1])
+                gl.uniform3fv(lightPosition, [0, 0, -2])
 
                 const colorLocation = programInfo.uniformLocation.uLightColor
-                gl.uniform3fv(colorLocation, [1, 1, 0])
+                gl.uniform3fv(colorLocation, [0, 1, 1])
               }
 
               {
