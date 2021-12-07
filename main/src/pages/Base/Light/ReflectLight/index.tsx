@@ -11,7 +11,7 @@ interface Props {
 
 export default function ReflectLight(props: Props) {
 
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>()
 
   // prettier-ignore
   const positions = [
@@ -177,10 +177,10 @@ export default function ReflectLight(props: Props) {
 
                 const modelMatrix = mat4.create()
 
-                squareRotation += time / 2
+                squareRotation += time / 4
 
                 mat4.scale(modelMatrix, modelMatrix, [0.75, 0.75, 0.75])
-                mat4.rotateX(modelMatrix, modelMatrix, squareRotation)
+                // mat4.rotateX(modelMatrix, modelMatrix, squareRotation)
                 mat4.rotateY(modelMatrix, modelMatrix, squareRotation)
                 mat4.rotateZ(modelMatrix, modelMatrix, squareRotation)
 
@@ -193,7 +193,7 @@ export default function ReflectLight(props: Props) {
 
                 const viewMatrix = mat4.create()
                 const cameraPosition = vec3.create()
-                vec3.set(cameraPosition, 0, 0, 3)
+                vec3.set(cameraPosition, 0, 2, 3)
 
                 const cameraLocation = programInfo.uniformLocation.uCameraPosition
                 gl.uniform3fv(cameraLocation, cameraPosition)
@@ -228,10 +228,10 @@ export default function ReflectLight(props: Props) {
                 gl.enableVertexAttribArray(location)
 
                 const lightPosition = programInfo.uniformLocation.uLightPosition
-                gl.uniform3fv(lightPosition, [0, 0, -2])
+                gl.uniform3fv(lightPosition, [0, -1, 0])
 
                 const colorLocation = programInfo.uniformLocation.uLightColor
-                gl.uniform3fv(colorLocation, [0, 1, 1])
+                gl.uniform3fv(colorLocation, [1, 1, 1])
               }
 
               {

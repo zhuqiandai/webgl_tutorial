@@ -21,15 +21,14 @@ void main(void) {
     vec3 dLight = max(directionLight, 0.0)* uLightColor;
 
     // 反射的方向
-    vec3 reflectDirection = reflect(-vLightDirection, normalize(vNormal));
-    float reflectDirectional = max(dot(normalize(reflectDirection), vCameraDirection), 0.0);
-    float relectK = 0.9;
+    vec3 reflectDirection = reflect(-vLightDirection, vNormal);
+    float reflectDirectional = max(dot(normalize(reflectDirection), normalize(vCameraDirection)), 0.0);
 
-    vec3 reflectLight = pow(reflectDirectional, 64.0)* relectK * uLightColor;
-
-    light = amibientLight +  reflectLight;
+    light = dLight;
 
     vec3 color = vec3(1.0, 1.0, 1.0);
 
     gl_FragColor = vec4(color * light, 1.0);
+
+    gl_FragColor.rgb += pow(reflectDirectional, 128.0);
 }

@@ -20,7 +20,7 @@ void main(void){
 
     vec3 normal = mat3(mvpMatrix) * aNormal;
 
-    vec3 cameraDirection = mat3(mvpMatrix) * normalize(position.xyz - uCameraPosition);
+    vec3 cameraDirection = uCameraPosition - position.xyz;
 
     gl_Position= position;
 
