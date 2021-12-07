@@ -12,7 +12,7 @@ export default function RotateTransform() {
   const [bufferInfo, setBufferInfo] = useState<any>()
   const [transformInfo, setTransformInfo] = useState<any>()
 
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>()
 
   // prettier-ignore
   const positionData = new Float32Array([

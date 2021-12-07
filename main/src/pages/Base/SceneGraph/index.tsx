@@ -12,7 +12,6 @@ export default function Triangles(props: Props) {
   // prettier-ignore
   const positionData = new Float32Array([
     0.0, 0.0, 1.0,
-
   ])
 
   useEffect(() => {
@@ -22,8 +21,8 @@ export default function Triangles(props: Props) {
       if (gl) {
 
 
-        loadShaderFile(`circle/index.vert`).then((vsSource: string) => {
-          loadShaderFile(`circle/index.frag`).then((fsSource: string) => {
+        loadShaderFile(`triangles/index.vert`).then((vsSource: unknown) => {
+          loadShaderFile(`triangles/index.frag`).then((fsSource: unknown) => {
             const program = initShaderProgram(gl, vsSource, fsSource)
 
             const positionBuffer = initBuffer(gl, gl.ARRAY_BUFFER, positionData)
@@ -54,7 +53,7 @@ export default function Triangles(props: Props) {
 
               {
                 // exe
-                const mode = gl.TRIANGLES
+                const mode = gl.POINTS
                 const first = 0
                 const count = 11
 

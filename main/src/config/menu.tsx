@@ -6,6 +6,7 @@ import RotateTransform from "src/pages/Transform/Rotate";
 import DirectionLight from "src/pages/Base/Light/DirectionLight";
 import PointLight from "src/pages/Base/Light/PointLight";
 import ReflectLight from "src/pages/Base/Light/ReflectLight";
+import MulitMesh from "src/pages/Base/MulitMesh";
 
 
 export interface MenuConfig {
@@ -34,6 +35,11 @@ const menuConfig: Array<MenuConfig> = [
         path: '/coordinateSpace',
         name: 'coordinateSpace',
         element: <CoordinateSpace/>
+      },
+      {
+        path: '/MulitMesh',
+        name: '绘制多个物体',
+        element: <MulitMesh />
       },
       {
         path: '/light',
