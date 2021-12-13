@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/../three_source/.idea/three_source.iml" filepath="$PROJECT_DIR$/../three_source/.idea/three_source.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/webgl_tutorial.iml" filepath="$PROJECT_DIR$/.idea/webgl_tutorial.iml" />
-    </modules>
-  </component>
-</project>
