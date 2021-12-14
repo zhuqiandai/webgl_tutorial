@@ -1,6 +1,7 @@
 import React, { ReactElement } from 'react'
 import HomePage from 'src/pages'
 import CoordinateSpace from "src/pages/BaseConcept/Coordinate";
+import VectorMath from "src/pages/Math/Vector";
 
 export interface MenuConfig {
   path: string
@@ -23,6 +24,17 @@ const menuConfig: Array<MenuConfig> = [
         path: '/coordinate',
         name: '坐标系统',
         element: <CoordinateSpace />
+      }
+    ]
+  },
+  {
+    path: '/math',
+    name: '数学概念',
+    children: [
+      {
+        path: '/vector',
+        name: '向量',
+        element: <VectorMath />
       }
     ]
   }

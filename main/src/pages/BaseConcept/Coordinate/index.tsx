@@ -1,5 +1,6 @@
 import React, {FC, useEffect, useRef} from 'react'
 import {initBuffer, initShaderProgram, loadShaderFile} from '@mercator/gl-utils'
+import {mat4} from 'src/matrix'
 
 interface CoordinateSpaceProps {
 
@@ -13,37 +14,37 @@ const CoordinateSpace: FC<CoordinateSpaceProps> = () => {
   const axisData = new Float32Array(axis)
 
   const axisArrow = [
-    0.8, 0, 0,
     0.9, 0, 0,
     0.8, 0.1, 0,
-
-    0.8, 0, 0,
-    0.9, 0, 0,
-    0.8, -0.1, 0,
-
-    0.8, 0, 0,
-    0.9, 0, 0,
-    0.8, 0, 0.1,
-
-    0.8, 0, 0,
-    0.9, 0, 0,
-    0.8, 0, -0.1,
-
-    0.8, 0, 0,
-    0.9, 0, 0,
     0.8, 0.1 * Math.sin(45), 0.1 * Math.cos(45),
 
-    0.8, 0, 0,
     0.9, 0, 0,
+    0.8, 0.1 * Math.sin(45), 0.1 * Math.cos(45),
+    0.8, 0, 0.1,
+
+    0.9, 0, 0,
+    0.8, 0, 0.1,
     0.8, -0.1 * Math.sin(45), 0.1 * Math.cos(45),
 
-    0.8, 0, 0,
     0.9, 0, 0,
-    0.8, 0.1 * Math.sin(45), -0.1 * Math.cos(45),
+    0.8, -0.1 * Math.sin(45), 0.1 * Math.cos(45),
+    0.8, -0.1, 0,
 
-    0.8, 0, 0,
+    0.9, 0, 0,
+    0.8, -0.1, 0,
+    0.8, -0.1 * Math.sin(45), -0.1 * Math.cos(45),
+
     0.9, 0, 0,
     0.8, -0.1 * Math.sin(45), -0.1 * Math.cos(45),
+    0.8, 0, -0.1,
+
+    0.9, 0, 0,
+    0.8, -0.1 * Math.sin(45), 0.1 * Math.cos(45),
+    0.8, 0, -0.1,
+
+    0.9, 0, 0,
+    0.8, -0.1 * Math.sin(45), 0.1 * Math.cos(45),
+    0.8, 0.1, 0,
   ]
 
   const axisArrowData = new Float32Array(axisArrow)
@@ -73,8 +74,20 @@ const CoordinateSpace: FC<CoordinateSpaceProps> = () => {
           function draw(gl) {
             {
               gl.clearColor(0.0, 0.0, 0.0, 1.0)
-              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+              gl.enable(gl.CULL_FACE)
             }
+
+            {
+              const viewMatrix = mat4.create()
+
+              mat4.lookAt(viewMatrix, [2, 2, -1], [0, 0, 1], [0, 1, 0])
+
+              const viewLocation = programInfo.uniform.uViewMatrix
+              gl.uniformMatrix4fv(viewLocation, false, viewMatrix)
+            }
+
             {
               gl.bindBuffer(gl.ARRAY_BUFFER, axisBuffer)
 

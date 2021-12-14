@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@mercator/gl-utils": "^1.0.16",
+    "@mercator/toy-webgl-engine": "^1.0.2",
     "@types/node": "^16.11.11",
     "antd": "^4.17.2",
     "gl-matrix": "^3.4.3",

@@ -303,6 +303,11 @@
   resolved "https://registry.npmjs.org/@mercator/gl-utils/-/gl-utils-1.0.16.tgz#dbda8218b884a583c9c51bbf5bf96cc7230e2163"
   integrity sha512-xNH8SlZJnDknxIKflJDeERUrOlKCm7NgQyQzWISAja+fcr18GRbBeqQaP2GpI+1vcmvHvdJkztJt53F0xM/wdQ==
 
+"@mercator/toy-webgl-engine@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.npmjs.org/@mercator/toy-webgl-engine/-/toy-webgl-engine-1.0.2.tgz#42fa36397b136f91a9c3a91643b032c142195890"
+  integrity sha512-Qj2ZLIchrkVeYgoydRmxH+M+3ozU0YM9/XIrxXjxYO2XYa1rkTvzQB/C03U8uCQ63C7JTBQNcIWzBfW00yYDmA==
+
 "@rollup/pluginutils@^4.0.0", "@rollup/pluginutils@^4.1.1":
   version "4.1.1"
   resolved "https://registry.nlark.com/@rollup/pluginutils/download/@rollup/pluginutils-4.1.1.tgz?cache=0&sync_timestamp=1626395140635&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40rollup%2Fpluginutils%2Fdownload%2F%40rollup%2Fpluginutils-4.1.1.tgz#1d4da86dd4eded15656a57d933fda2b9a08d47ec"
