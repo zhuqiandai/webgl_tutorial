@@ -1,6 +1,6 @@
 import React, {FC, useEffect, useRef} from 'react'
 import {initBuffer, initShaderProgram, loadShaderFile} from '@mercator/gl-utils'
-import {mat4} from 'src/matrix'
+import {mat4} from 'gl-matrix'
 
 interface CoordinateSpaceProps {
 

@@ -1,7 +1,9 @@
 import React, {FC, useEffect, useRef} from 'react'
 import {initBuffer, initShaderProgram, loadShaderFile} from '@mercator/gl-utils'
-import {Math as ToyMath} from '@mercator/toy-webgl-engine'
-import {mat4} from 'src/matrix'
+import {mat4} from 'gl-matrix'
+
+import {axisData, axisColorData} from 'src/common/axis'
+
 
 interface CoordinateSpaceProps {
 
@@ -9,20 +11,10 @@ interface CoordinateSpaceProps {
 
 const VectorMath: FC<CoordinateSpaceProps> = () => {
 
+  const vec3 = new Float32Array([0, 0, 0, 0.8, 0.5, -0.2])
+  const vec3Color = new Float32Array([0.0, 1.0, 1.0])
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-
-  const axis = [-0.8, 0, 0, 0.8, 0, 0, 0, -0.8, 0, 0, 0.8, 0, 0, 0, -0.8, 0, 0, 0.8]
-  const axisData = new Float32Array(axis)
-
-  const axisColor = [
-    1.0, 0.0, 0.0,
-    1.0, 0.0, 0.0,
-    0.0, 1.0, 0.0,
-    0.0, 1.0, 0.0,
-    0.0, 0.0, 1.0,
-    0.0, 0.0, 1.0,
-  ]
-  const axisColorData = new Float32Array(axisColor)
 
   useEffect(() => {
     loadShaderFile('vector/index.vert').then((vsSource: unknown) => {
@@ -47,21 +39,15 @@ const VectorMath: FC<CoordinateSpaceProps> = () => {
           const axisBuffer = initBuffer(gl, gl.ARRAY_BUFFER, axisData)
           const axisColorBuffer = initBuffer(gl, gl.ARRAY_BUFFER, axisColorData)
 
+          const vec3Buffer = initBuffer(gl, gl.ARRAY_BUFFER, vec3)
+          const vec3ColorBuffer = initBuffer(gl, gl.ARRAY_BUFFER, vec3Color)
+
           function draw(gl) {
             {
               gl.clearColor(0.0, 0.0, 0.0, 1.0)
               gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
               gl.enable(gl.CULL_FACE)
-            }
-
-            {
-              const viewMatrix = mat4.create()
-
-              mat4.lookAt(viewMatrix, [2, 2, 1], [0, 0, -1], [0, 1, 0])
-
-              const viewLocation = programInfo.uniform.uViewMatrix
-              gl.uniformMatrix4fv(viewLocation, false, viewMatrix)
             }
 
             {
@@ -87,6 +73,39 @@ const VectorMath: FC<CoordinateSpaceProps> = () => {
               const first = 0
               const count = 6
               gl.drawArrays(mode, first, count)
+            }
+
+            {
+              gl.bindBuffer(gl.ARRAY_BUFFER, vec3Buffer)
+
+              const attribLocation = programInfo.vertex.aPosition
+              const size = 3
+              const dataType = gl.FLOAT
+              const normalized = false
+              const stride = 0
+              const offset = 0
+              gl.vertexAttribPointer(attribLocation, size, dataType, normalized, stride, offset)
+              gl.enableVertexAttribArray(attribLocation)
+
+              gl.bindBuffer(gl.ARRAY_BUFFER, vec3ColorBuffer)
+              const colorLocation = programInfo.vertex.aColor
+              const colorSize = 3
+              gl.vertexAttribPointer(colorLocation, colorSize, dataType, normalized, stride, offset)
+              gl.enableVertexAttribArray(colorLocation)
+
+              const mode = gl.LINES
+              const first = 0
+              const count = 2
+              gl.drawArrays(mode, first, count)
+            }
+
+            {
+              const viewMatrix = mat4.create()
+
+              mat4.lookAt(viewMatrix, [2, 2, 1], [0, 0, -1], [0, 1, 0])
+
+              const viewLocation = programInfo.uniform.uViewMatrix
+              gl.uniformMatrix4fv(viewLocation, false, viewMatrix)
             }
           }
 
