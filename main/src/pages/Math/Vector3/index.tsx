@@ -1,16 +1,16 @@
-import React, {FC, useEffect, useRef} from 'react'
-import {initBuffer, initShaderProgram, loadShaderFile} from '@mercator/gl-utils'
-import {mat4} from 'gl-matrix'
+import React, { FC, useEffect, useRef } from 'react'
+import {
+  initBuffer,
+  initShaderProgram,
+  loadShaderFile,
+} from '@mercator/gl-utils'
+import { mat4 } from 'gl-matrix'
 
-import {axisData, axisColorData} from 'src/common/axis'
+import { axisData, axisColorData } from 'src/common/axis'
 
-
-interface CoordinateSpaceProps {
-
-}
+interface CoordinateSpaceProps {}
 
 const VectorMath: FC<CoordinateSpaceProps> = () => {
-
   const vec3 = new Float32Array([0, 0, 0, 0.8, 0.5, -0.2])
   const vec3Color = new Float32Array([0.0, 1.0, 1.0])
 
@@ -22,16 +22,18 @@ const VectorMath: FC<CoordinateSpaceProps> = () => {
         if (canvasRef.current) {
           const gl = canvasRef.current?.getContext('webgl')
 
+          if (!gl) return
+
           const program = initShaderProgram(gl, vsSource, fsSource)
 
           const programInfo = {
             vertex: {
               aPosition: gl.getAttribLocation(program, 'aPosition'),
-              aColor: gl.getAttribLocation(program, 'aColor')
+              aColor: gl.getAttribLocation(program, 'aColor'),
             },
             uniform: {
-              uViewMatrix: gl.getUniformLocation(program, 'uViewMatrix')
-            }
+              uViewMatrix: gl.getUniformLocation(program, 'uViewMatrix'),
+            },
           }
 
           gl.useProgram(program)
@@ -42,7 +44,7 @@ const VectorMath: FC<CoordinateSpaceProps> = () => {
           const vec3Buffer = initBuffer(gl, gl.ARRAY_BUFFER, vec3)
           const vec3ColorBuffer = initBuffer(gl, gl.ARRAY_BUFFER, vec3Color)
 
-          function draw(gl) {
+          function draw(gl: WebGLRenderingContext) {
             {
               gl.clearColor(0.0, 0.0, 0.0, 1.0)
               gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -59,14 +61,27 @@ const VectorMath: FC<CoordinateSpaceProps> = () => {
               const normalized = false
               const stride = 0
               const offset = 0
-              gl.vertexAttribPointer(attribLocation, size, dataType, normalized, stride, offset)
+              gl.vertexAttribPointer(
+                attribLocation,
+                size,
+                dataType,
+                normalized,
+                stride,
+                offset
+              )
               gl.enableVertexAttribArray(attribLocation)
-
 
               gl.bindBuffer(gl.ARRAY_BUFFER, axisColorBuffer)
               const colorLocation = programInfo.vertex.aColor
               const colorSize = 3
-              gl.vertexAttribPointer(colorLocation, colorSize, dataType, normalized, stride, offset)
+              gl.vertexAttribPointer(
+                colorLocation,
+                colorSize,
+                dataType,
+                normalized,
+                stride,
+                offset
+              )
               gl.enableVertexAttribArray(colorLocation)
 
               const mode = gl.LINES
@@ -84,13 +99,27 @@ const VectorMath: FC<CoordinateSpaceProps> = () => {
               const normalized = false
               const stride = 0
               const offset = 0
-              gl.vertexAttribPointer(attribLocation, size, dataType, normalized, stride, offset)
+              gl.vertexAttribPointer(
+                attribLocation,
+                size,
+                dataType,
+                normalized,
+                stride,
+                offset
+              )
               gl.enableVertexAttribArray(attribLocation)
 
               gl.bindBuffer(gl.ARRAY_BUFFER, vec3ColorBuffer)
               const colorLocation = programInfo.vertex.aColor
               const colorSize = 3
-              gl.vertexAttribPointer(colorLocation, colorSize, dataType, normalized, stride, offset)
+              gl.vertexAttribPointer(
+                colorLocation,
+                colorSize,
+                dataType,
+                normalized,
+                stride,
+                offset
+              )
               gl.enableVertexAttribArray(colorLocation)
 
               const mode = gl.LINES
@@ -109,9 +138,10 @@ const VectorMath: FC<CoordinateSpaceProps> = () => {
             }
           }
 
-
           function render() {
-            draw(gl)
+            if (gl) {
+              draw(gl)
+            }
 
             requestAnimationFrame(render)
           }
@@ -122,10 +152,11 @@ const VectorMath: FC<CoordinateSpaceProps> = () => {
     })
   }, [])
 
-
-  return <>
-    <canvas ref={canvasRef} width={800} height={800} className="canvas-ref"/>
-  </>;
+  return (
+    <>
+      <canvas ref={canvasRef} width={800} height={800} className="canvas-ref" />
+    </>
+  )
 }
 
-export default VectorMath;
+export default VectorMath
