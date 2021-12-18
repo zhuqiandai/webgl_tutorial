@@ -1,4 +1,4 @@
-export { default } from './loadShaderFile'
+export { default as loadShaderFile } from './loadShaderFile'
 
 const degree = Math.PI / 180
 

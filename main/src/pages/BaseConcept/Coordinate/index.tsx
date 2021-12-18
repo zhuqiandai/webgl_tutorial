@@ -55,6 +55,8 @@ const CoordinateSpace: FC<CoordinateSpaceProps> = () => {
         if (canvasRef.current) {
           const gl = canvasRef.current?.getContext('webgl')
 
+          if (!gl) return
+
           const program = initShaderProgram(gl, vsSource, fsSource)
 
           const programInfo = {
@@ -71,7 +73,7 @@ const CoordinateSpace: FC<CoordinateSpaceProps> = () => {
           const axisBuffer = initBuffer(gl, gl.ARRAY_BUFFER, axisData)
           const axiosArrowBuffer = initBuffer(gl, gl.ARRAY_BUFFER, axisArrowData)
 
-          function draw(gl) {
+          function draw(gl: WebGLRenderingContext) {
             {
               gl.clearColor(0.0, 0.0, 0.0, 1.0)
               gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -127,7 +129,7 @@ const CoordinateSpace: FC<CoordinateSpaceProps> = () => {
 
 
           function render() {
-            draw(gl)
+            gl && draw(gl)
 
             requestAnimationFrame(render)
           }
