@@ -1,7 +1,7 @@
 import React, { ReactElement } from 'react'
 import HomePage from 'src/pages'
 import CoordinateSpace from "src/pages/BaseConcept/Coordinate";
-import VectorMath from "src/pages/Math/Vector";
+import VectorMath from "src/pages/Math/Vector3";
 
 export interface MenuConfig {
   path: string
