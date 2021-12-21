@@ -1,7 +1,7 @@
 import { IEngineOptions } from './interface/IEngineOptions'
-import { WheelEngine } from './wheelEngine'
+import { RustEngine } from './rustEngine'
 
-export class Engine extends WheelEngine {
+export class Engine extends RustEngine {
   constructor(canvasElement: HTMLCanvasElement, opts: IEngineOptions) {
     super(canvasElement, opts)
   }
