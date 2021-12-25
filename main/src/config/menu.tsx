@@ -1,6 +1,7 @@
 import React, { ReactElement } from 'react'
 import HomePage from 'src/pages'
 import CoordinateSpace from "src/pages/BaseConcept/Coordinate";
+import TextureMap from 'src/pages/BaseConcept/TextureMap';
 import VectorMath from "src/pages/Math/Vector3";
 
 export interface MenuConfig {
@@ -24,6 +25,11 @@ const menuConfig: Array<MenuConfig> = [
         path: '/coordinate',
         name: '坐标系统',
         element: <CoordinateSpace />
+      },
+      {
+        path: '/texturemap',
+        name: '纹理映射',
+        element: <TextureMap />
       }
     ]
   },
