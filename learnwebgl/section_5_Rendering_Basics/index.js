@@ -1,17 +1,17 @@
-import Renderer from '../Renderer'
+import Renderer from '../Renderer.js'
 
 window.onload = () => {
   const canvas = document.getElementById('canvas')
 
-  const renderer = new Renderer(canvas)
-
   const vs = `
-
     attribute vec4 aVertexPosition;
+
+    uniform uScaleMatrix;
 
     void main()
     {
-      gl_Position = aVertexPosition;
+      uniform uScaleMatrix = mat4();
+      gl_Position = uScaleMatrix * aVertexPosition;
     }
   `
 
@@ -22,5 +22,29 @@ window.onload = () => {
     }
   `
 
-  console.log(renderer, vs, fs)
+  const renderer = new Renderer(canvas, vs, fs)
+
+  const positions = [
+    // Front face
+    -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
+
+    // Back face
+    -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0,
+
+    // Top face
+    -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0,
+
+    // Bottom face
+    -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0,
+
+    // Right face
+    1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0,
+
+    // Left face
+    -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
+  ]
+
+
+  renderer.createBox(positions, 'aVertexPosition')
+  renderer.draw()
 }
