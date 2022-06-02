@@ -6,12 +6,10 @@ window.onload = () => {
   const vs = `
     attribute vec4 aVertexPosition;
 
-    uniform uScaleMatrix;
-
     void main()
     {
       uniform uScaleMatrix = mat4();
-      gl_Position = uScaleMatrix * aVertexPosition;
+      gl_Position = uScaleMatrix.xyz * aVertexPosition;
     }
   `
 
