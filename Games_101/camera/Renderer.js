@@ -12,7 +12,8 @@ class Renderer {
   width
   height
 
-  indiceBuffer
+  buffer
+  bufferType
 
   constructor(canvas, vsSource, fsSource) {
     this.canvas = canvas
@@ -26,11 +27,10 @@ class Renderer {
 
       this.gl = this.canvas.getContext('webgl2')
 
-      this.resizeCanavs()
-      this.clearColorBuffer()
-
       this.compileShader()
       this.createProgram()
+
+      this.enable()
     }
   }
 
@@ -51,6 +51,14 @@ class Renderer {
     }
   }
 
+  enable() {
+    if (this.gl instanceof WebGL2RenderingContext) {
+      this.gl.enable(this.gl.DEPTH_TEST)
+      this.gl.enable(this.gl.CULL_FACE)
+    }
+
+  }
+
   compileShader() {
     if (this.gl instanceof WebGL2RenderingContext) {
       this.vsShader = this.gl.createShader(this.gl.VERTEX_SHADER)
@@ -68,88 +76,76 @@ class Renderer {
 
     const width = pixelRatio * this.width
     const height = pixelRatio * this.height
+
     this.gl.viewport(0, 0, width, height)
   }
 
   clearColorBuffer() {
-    this.gl.clearColor(1.0, 1.0, 1.0, 1.0)
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0)
     this.gl.clear(this.gl.COLOR_BUFFER_BIT)
   }
 
-  draw() {
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indiceBuffer)
-
-    const vertexCount = 36
-    const type = this.gl.UNSIGNED_SHORT
-    const offset = 0
-    this.gl.drawElements(this.gl.TRIANGLES, vertexCount, type, offset)
+  clearDepthBuffer() {
+    this.gl.clearDepth(1.0)
+    this.gl.clear(this.gl.DEPTH_BUFFER_BIT)
   }
 
-  createBox(vertices, attribute) {
+  draw(positions) {
     if (this.gl instanceof WebGL2RenderingContext) {
-      const buffer = this.gl.createBuffer()
-      const indices = [
-        0,
-        1,
-        2,
-        0,
-        2,
-        3, // front
-        4,
-        5,
-        6,
-        4,
-        6,
-        7, // back
-        8,
-        9,
-        10,
-        8,
-        10,
-        11, // top
-        12,
-        13,
-        14,
-        12,
-        14,
-        15, // bottom
-        16,
-        17,
-        18,
-        16,
-        18,
-        19, // right
-        20,
-        21,
-        22,
-        20,
-        22,
-        23, // left
-      ]
+      this.resizeCanavs()
+      this.clearColorBuffer()
+      this.clearDepthBuffer()
 
-      this.indiceBuffer = this.gl.createBuffer()
+      this.createBuffer(positions)
+      this.attribPointer('aVertexPosition')
 
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer)
-      this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indiceBuffer)
+      this.gl.drawArrays(this.gl.TRIANGLES, 0, positions.length)
+    }
+  }
 
-      this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW)
-      this.gl.bufferData(
-        this.gl.ELEMENT_ARRAY_BUFFER,
-        new Uint16Array(indices),
-        this.gl.STATIC_DRAW
-      )
+  createBuffer(positions) {
+    if (this.gl instanceof WebGL2RenderingContext) {
+      const pos = new Float32Array(positions)
 
-      const location = this.gl.getAttribLocation(this.program, attribute)
+      this.buffer = this.gl.createBuffer()
 
-      const numComponents = 3
+      this.bufferType = this.gl.ARRAY_BUFFER
+
+      this.gl.bindBuffer(this.bufferType, this.buffer)
+      this.gl.bufferData(this.bufferType, pos, this.gl.STATIC_DRAW)
+    }
+  }
+
+  attribPointer(attrib) {
+    if (this.gl instanceof WebGL2RenderingContext) {
+      const location = this.gl.getAttribLocation(this.program, attrib)
+
+      const size = 3
       const type = this.gl.FLOAT
       const normalize = false
       const stride = 0
       const offset = 0
 
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer)
-      this.gl.vertexAttribPointer(location, numComponents, type, normalize, stride, offset)
+      this.gl.bindBuffer(this.bufferType, this.buffer)
+
+      this.gl.vertexAttribPointer(location, size, type, normalize, stride, offset)
       this.gl.enableVertexAttribArray(location)
+    }
+  }
+
+  applyTransCamera(camera) {
+    if (this.gl instanceof WebGL2RenderingContext) {
+      const location = this.gl.getUniformLocation(this.program, 'uTransCameraMat')
+
+      this.gl.uniformMatrix4fv(location, false, camera)
+    }
+  }
+
+  applyRoateCamera(camera) {
+    if (this.gl instanceof WebGL2RenderingContext) {
+      const location = this.gl.getUniformLocation(this.program, 'uRotateCameraMat')
+
+      this.gl.uniformMatrix4fv(location, false, camera)
     }
   }
 }
