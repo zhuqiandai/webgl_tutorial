@@ -1,8 +1,7 @@
 class Renderer {
   isActive
 
-  constructor(wangGL, callback) {
-    this.wangGL = wangGL
+  constructor( callback) {
     this.callback = callback
 
     this.then = 0
@@ -11,9 +10,6 @@ class Renderer {
   }
 
   run(now) {
-    this.wangGL.clearColor()
-    this.wangGL.clearDepth()
-
     now *= 0.001
 
     const deltatime = now - this.then

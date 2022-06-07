@@ -29,6 +29,7 @@ class WangGL {
 
   clearDepth() {
     this.gl.clear(this.gl.DEPTH_BUFFER_BIT)
+    this.gl.clearDepth(1.0)
   }
 
   clearColor() {
@@ -80,31 +81,51 @@ class WangGL {
   }
 
   drawSimpleCube() {
-    const { positions, indices } = SimpleCube()
+    const { vertexPositions, indices, vertexNormals } = cube()
     const positionLoc = 0
+    const normalLoc = 1
 
     const vao = this.gl.createVertexArray()
     this.gl.bindVertexArray(vao)
 
     const positionsBuffer = this.gl.createBuffer()
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionsBuffer)
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(positions), this.gl.STATIC_DRAW)
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexPositions, this.gl.STATIC_DRAW)
+
+    this.gl.vertexAttribPointer(positionLoc, 3, this.gl.FLOAT, false, 0, 0)
+    this.gl.enableVertexAttribArray(positionLoc)
+
+    const normalBuffer = this.gl.createBuffer()
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer)
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexNormals, this.gl.STATIC_DRAW)
+
+    this.gl.vertexAttribPointer(normalLoc, 3, this.gl.FLOAT, false, 0, 0)
+    this.gl.enableVertexAttribArray(normalLoc)
 
     const indicesBuffer = this.gl.createBuffer()
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indicesBuffer)
-    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), this.gl.STATIC_DRAW)
+    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indices, this.gl.STATIC_DRAW)
 
-    this.gl.enableVertexAttribArray(positionLoc)
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indicesBuffer)
+    this.gl.drawElements(this.gl.TRIANGLES, indices.length, this.gl.UNSIGNED_SHORT, 0)
 
-    this.gl.vertexAttribPointer(positionLoc, 3, this.gl.FLOAT, false, 0, 0)
-
-    this.gl.drawElements(this.gl.TRIANGLES, 36, this.gl.UNSIGNED_SHORT, 0)
+    this.gl.bindVertexArray(null)
   }
 
   applyModel(mat) {
-    const modelLoc = this.gl.getUniformLocation(this.program, "model")
+    const modelLoc = this.gl.getUniformLocation(this.program, "u_model")
 
     this.gl.uniformMatrix4fv(modelLoc, false, mat)
+  }
+
+  applyProejction(mat) {
+    const projLoc = this.gl.getUniformLocation(this.program, "u_projection")
+
+    this.gl.uniformMatrix4fv(projLoc, false, mat)
+  }
+
+  drawAxesXYZ() {
+    const vao = this.gl.createVertexArray()
   }
 }
 

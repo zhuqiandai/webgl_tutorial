@@ -1,21 +1,48 @@
 
-import Matrix4 from '../src/Matrix4.js'
 import Renderer from '../src/Renderer.js'
 import WangGL from '../src/WangGL.js'
 
+const { mat4 } = glMatrix
+
 const wangGL = new WangGL('canvas', 'vshader', 'fshader')
 
-let modelMat = Matrix4.create()
-modelMat = Matrix4.scale(modelMat, [0.2, 0.2, 0.2])
 
-let rotation = 0
+const fieldOfView = 45 * Math.PI / 180;   // in radians
+const aspect = 1;
+const zNear = 0.1;
+const zFar = 100.0;
+const projectionMatrix = mat4.create();
+
+mat4.perspective(projectionMatrix,
+  fieldOfView,
+  aspect,
+  zNear,
+  zFar);
+
+const modelViewMatrix = mat4.create()
+mat4.translate(modelViewMatrix,     // destination matrix
+  modelViewMatrix,     // matrix to translate
+  [-0.0, 0.0, -20.0]);  // amount to translate
+
 
 function draw(time) {
-  wangGL.drawSimpleCube()
-  wangGL.applyModel(modelMat)
+  wangGL.clearColor()
+  wangGL.clearDepth()
 
-  rotation += time
+  wangGL.drawSimpleCube()
+
+  wangGL.applyProejction(projectionMatrix)
+
+  mat4.rotate(modelViewMatrix,  // destination matrix
+    modelViewMatrix,  // matrix to rotate
+    time,     // amount to rotate in radians
+    [0, 0, 1]);       // axis to rotate around (Z)
+  mat4.rotate(modelViewMatrix,  // destination matrix
+    modelViewMatrix,  // matrix to rotate
+    time * .7,// amount to rotate in radians
+    [0, 1, 0]);
+  wangGL.applyModel(modelViewMatrix)
 }
 
-const render = new Renderer(wangGL, draw)
+const render = new Renderer(draw)
 render.start()
