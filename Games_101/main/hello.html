@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas" width="800" height="800"></canvas>
+
+    <script src="../src/Geometry/basic-object-models-IFS.js"></script>
+    <script src="../src/Geometry/teapot-model-IFS.js"></script>
+
+    <script id="vshader" type="x-shader/x-vertex">#version 300 es
+            layout(location=0) in vec3 a_position;
+
+            uniform mat4 model;
+
+            void main()
+            {
+              vec4 position = model * vec4(a_position, 1.);
+              gl_Position=position;
+            }
+    </script>
+    <script id="fshader" type="x-shader/x-fragment">#version 300 es
+            precision mediump float;
+
+            out vec4 fragColor;
+
+            void main(void)
+            {
+              fragColor=vec4(1.,1.,0.,1.);
+            }
+    </script>
+
+    <script type="module" src="./hello.js"></script>
+  </body>
+</html>
