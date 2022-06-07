@@ -51,8 +51,6 @@
         const program = new MinerShader(miner.gl, 'vshader', 'fshader').createProgram()
         miner.gl.useProgram(program)
 
-        
-
         const renderLoop = new MinerRenderLoop()
 
         renderLoop.start()
