@@ -1,8 +1,8 @@
 
-import Renderer from '../src/Renderer.js'
-import WangGL from '../src/WangGL.js'
+import Renderer from './src/Renderer.js'
+import WangGL from './src/WangGL.js'
 
-const { mat4 } = glMatrix
+const { mat4, mat3 } = glMatrix
 
 const wangGL = new WangGL('canvas', 'vshader', 'fshader')
 
@@ -22,8 +22,10 @@ mat4.perspective(projectionMatrix,
 const modelViewMatrix = mat4.create()
 mat4.translate(modelViewMatrix,     // destination matrix
   modelViewMatrix,     // matrix to translate
-  [-0.0, 0.0, -20.0]);  // amount to translate
+  [-0.0, 0.0, -4.0]);  // amount to translate
 
+
+const normalMatrix = mat3.create()
 
 function draw(time) {
   wangGL.clearColor()
@@ -42,6 +44,10 @@ function draw(time) {
     time * .7,// amount to rotate in radians
     [0, 1, 0]);
   wangGL.applyModel(modelViewMatrix)
+
+
+  mat3.normalFromMat4(normalMatrix, modelViewMatrix);
+  wangGL.applyNormal(normalMatrix)
 }
 
 const render = new Renderer(draw)

@@ -1,5 +1,3 @@
-import { SimpleCube } from '../src/Geometry/SimpleCube.js'
-
 class WangGL {
   gl
   program
@@ -33,7 +31,7 @@ class WangGL {
   }
 
   clearColor() {
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0)
+    this.gl.clearColor(1.0, 1.0, 1.0, 1.0)
     this.gl.clear(this.gl.COLOR_BUFFER_BIT)
   }
 
@@ -110,22 +108,6 @@ class WangGL {
     this.gl.drawElements(this.gl.TRIANGLES, indices.length, this.gl.UNSIGNED_SHORT, 0)
 
     this.gl.bindVertexArray(null)
-  }
-
-  applyModel(mat) {
-    const modelLoc = this.gl.getUniformLocation(this.program, "u_model")
-
-    this.gl.uniformMatrix4fv(modelLoc, false, mat)
-  }
-
-  applyProejction(mat) {
-    const projLoc = this.gl.getUniformLocation(this.program, "u_projection")
-
-    this.gl.uniformMatrix4fv(projLoc, false, mat)
-  }
-
-  drawAxesXYZ() {
-    const vao = this.gl.createVertexArray()
   }
 }
 
