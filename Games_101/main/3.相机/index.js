@@ -13,6 +13,17 @@ let viewMatrix = Matrix4.create()
 
 const primitive = new Primitive(wangGL.gl, wangGL.program)
 
+// camera
+const cameraInfo = {
+  up: [1, 0, 0],
+  derection: [0, 0, -1],
+  position: [0, 0, 1]
+}
+
+const projectionInfo = {
+  
+}
+
 function draw(time) {
   wangGL.clearColor()
   wangGL.clearDepth()
